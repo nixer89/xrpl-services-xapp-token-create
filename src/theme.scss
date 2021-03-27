@@ -1,0 +1,544 @@
+@import '~@angular/material/theming';
+
+@include mat-core();
+
+$md-xummblue: (
+    50 : #e6eaff,
+    100 : #c1cbff,
+    200 : #98a9ff,
+    300 : #6e86ff,
+    400 : #4f6cff,
+    500 : #3052ff,
+    600 : #2b4bff,
+    700 : #2441ff,
+    800 : #1e38ff,
+    900 : #1328ff,
+    A100 : #ffffff,
+    A200 : #fafaff,
+    A400 : #c7cbff,
+    A700 : #adb3ff,
+    contrast: (
+        50 : #000000,
+        100 : #000000,
+        200 : #000000,
+        300 : #000000,
+        400 : #ffffff,
+        500 : #ffffff,
+        600 : #ffffff,
+        700 : #ffffff,
+        800 : #ffffff,
+        900 : #ffffff,
+        A100 : #000000,
+        A200 : #000000,
+        A400 : #000000,
+        A700 : #000000,
+    )
+);
+
+$md-xummorange: (
+    50 : #fef7ea,
+    100 : #fdecc9,
+    200 : #fcdfa6,
+    300 : #fad282,
+    400 : #f9c967,
+    500 : #f8bf4c,
+    600 : #f7b945,
+    700 : #f6b13c,
+    800 : #f5a933,
+    900 : #f39b24,
+    A100 : #ffffff,
+    A200 : #fffcf9,
+    A400 : #ffe6c6,
+    A700 : #ffdaad,
+    contrast: (
+        50 : #000000,
+        100 : #000000,
+        200 : #000000,
+        300 : #000000,
+        400 : #000000,
+        500 : #000000,
+        600 : #000000,
+        700 : #000000,
+        800 : #000000,
+        900 : #000000,
+        A100 : #000000,
+        A200 : #000000,
+        A400 : #000000,
+        A700 : #000000,
+    )
+);
+
+$md-xummgreen: (
+    50 : #e7fbf2,
+    100 : #c4f5e0,
+    200 : #9deecb,
+    300 : #76e7b6,
+    400 : #58e1a6,
+    500 : #3bdc96,
+    600 : #35d88e,
+    700 : #2dd383,
+    800 : #26ce79,
+    900 : #19c568,
+    A100 : #f8fffb,
+    A200 : #c5ffde,
+    A400 : #92ffc1,
+    A700 : #79ffb2,
+    contrast: (
+        50 : #000000,
+        100 : #000000,
+        200 : #000000,
+        300 : #000000,
+        400 : #000000,
+        500 : #000000,
+        600 : #000000,
+        700 : #000000,
+        800 : #000000,
+        900 : #000000,
+        A100 : #000000,
+        A200 : #000000,
+        A400 : #000000,
+        A700 : #000000,
+    )
+);
+
+$md-xummred: (
+    50 : #ffebeb,
+    100 : #ffcece,
+    200 : #ffadad,
+    300 : #ff8c8c,
+    400 : #ff7474,
+    500 : #ff5b5b,
+    600 : #ff5353,
+    700 : #ff4949,
+    800 : #ff4040,
+    900 : #ff2f2f,
+    A100 : #ffffff,
+    A200 : #ffffff,
+    A400 : #ffdada,
+    A700 : #ffc1c1,
+    contrast: (
+        50 : #000000,
+        100 : #000000,
+        200 : #000000,
+        300 : #000000,
+        400 : #000000,
+        500 : #000000,
+        600 : #000000,
+        700 : #ffffff,
+        800 : #ffffff,
+        900 : #ffffff,
+        A100 : #000000,
+        A200 : #000000,
+        A400 : #000000,
+        A700 : #000000,
+    )
+);
+
+a {
+  color: rgb(248, 191, 76);
+}
+
+a:hover {
+  color: rgb(248, 191, 76);
+}
+
+a:active {
+  color: rgb(248, 191, 76);
+}
+
+.mat-form-field.mat-focused .mat-form-field-label {
+  color: rgb(96, 104, 133) !important;
+}
+
+.xumm-blue {
+  color: rgb(48, 82, 255) !important;
+}
+
+.xumm-orange {
+  color: rgb(248, 191, 76) !important;
+}
+
+.xumm-green {
+  color: rgb(59, 220, 150) !important;
+}
+
+.xumm-red {
+  color: rgb(255, 91, 91) !important;
+}
+
+.xumm-grey {
+  color: rgb(96, 104, 133) !important;
+}
+
+.xumm-silver {
+  color: rgb(172, 177, 193) !important;
+}
+
+.xumm-light {
+  color: rgb(248, 250, 253) !important;
+}
+
+.description {
+  color: rgb(248, 191, 76) !important;
+}
+
+.mat-step-icon.mat-step-icon-state-done {
+  background-color: rgb(59, 220, 150) !important;
+}
+
+
+.mat-step-icon.mat-step-icon-state-number.mat-step-icon-selected {
+  background-color: rgb(48, 82, 255) !important;
+}
+
+.mat-step-icon.mat-step-icon-state-number {
+  background-color:  rgb(96, 104, 133) !important;
+}
+
+.mat-stepper-vertical-line::before {
+  background-color: rgb(96, 104, 133) !important;
+}
+
+.mat-step-label.mat-step-label-active {
+  color: rgb(255, 255, 255) !important;
+}
+
+.mat-step-label {
+  color: rgb(172, 177, 193) !important;
+}
+
+.mat-raised-button {
+  font-weight: bold !important;
+}
+
+.mat-raised-button.mat-button-disabled.mat-button-disabled {
+  background-color: rgba(255, 255, 255, 0.12) !important
+}
+
+.mat-raised-button.xumm-grey-background {
+  background-color: rgb(96, 104, 133) !important;
+}
+
+// Our dark theme
+.light-theme {
+  $light-primary: mat-palette($md-xummblue);
+  $light-accent: mat-palette($md-xummorange);
+  $light-warn: mat-palette($md-xummred);  
+  $light-theme: mat-light-theme($light-primary, $light-accent, $light-warn);
+
+  .body {
+    color: #000000;
+    opacity: 1;
+  }
+
+  a {
+    color: rgb(48, 82, 255);
+  }
+  
+  a:hover {
+    color: rgb(48, 82, 255);
+  }
+  
+  a:active {
+    color: rgb(48, 82, 255);
+  }
+
+  .mat-card {
+    background-color:rgb(248, 250, 253) !important;
+  }
+
+  .mat-expansion-panel {
+    background-color:rgb(248, 250, 253) !important;
+  }
+
+  .mat-expansion-panel.expansion-panel-light {
+    background-color:rgb(248, 250, 253) !important;
+  }
+
+  .mat-expansion-panel-header.expansion-panel-light {
+    background-color:rgb(248, 250, 253) !important;
+  }
+
+  .mat-expansion-panel.expansion-panel-darker {
+    background-color:rgb(248, 250, 253) !important;
+  }
+
+  .mat-expansion-panel-header.expansion-panel-darker {
+    background-color:rgb(248, 250, 253) !important;
+  }
+
+  .theme-background {
+    background-color:#FFFFFF !important;
+    color: #000000;
+  }
+
+  .snackbar-success {
+    background-color:rgb(243,253,249) !important;
+    color: rgb(59, 220, 150) !important;
+  }
+
+  .snackbar-failed {
+    background-color:rgb(255,245,245) !important;
+    color: rgb(255, 91, 91) !important;
+  }
+
+  .mat-card.mat-card-red {
+    background-color: rgba(255, 91, 91, 0.06) !important;
+    color: rgb(255, 91, 91) !important;
+  }
+
+  .mat-card.mat-card-orange {
+    background-color: rgba(248, 191, 76, 0.06) !important;
+    color: rgb(248, 191, 76) !important;
+  }
+
+  .mat-card.mat-card-green {
+    background-color: rgba(59, 220, 150, 0.06) !important;
+    color: rgb(59, 220, 150) !important;
+  }
+
+  .mat-card.mat-card-blue {
+    background-color: rgba(48, 82, 255, 0.06) !important;
+    color: rgb(48, 82, 255) !important;
+  }
+
+  .description {
+    color: rgb(48, 82, 255) !important;
+  }
+
+  .mat-step-label.mat-step-label-active {
+    color: rgb(0, 0, 0) !important;
+  }
+
+  .mat-raised-button.mat-button-disabled.mat-button-disabled {
+    background-color: rgba(0, 0, 0, 0.1) !important
+  }
+
+  .mat-raised-button.xumm-grey-background {
+    background-color: rgba(96, 104, 133, 0.1) !important;
+  }
+  
+  @include angular-material-theme($light-theme);
+}
+
+// Our dark theme
+.dark-theme {
+  $dark-primary: mat-palette($md-xummblue);
+  $dark-accent: mat-palette($md-xummorange);
+  $dark-warn: mat-palette($md-xummred);  
+  $dark-theme: mat-dark-theme($dark-primary, $dark-accent, $dark-warn);
+
+  .body {
+    color: #FFFFFF;
+    opacity: 1;
+  }
+
+  .mat-card {
+    background-color:rgba(96, 104, 133, 0.25) !important;
+  }
+
+  .mat-expansion-panel {
+    background-color:rgba(96, 104, 133, 0.25) !important;
+  }
+
+  .mat-expansion-panel.expansion-panel-light {
+    background-color:rgba(96, 104, 133, 0.25) !important;
+  }
+
+  .mat-expansion-panel-header.expansion-panel-light {
+    background-color:rgba(96, 104, 133, 0.25) !important;
+  }
+
+  .mat-expansion-panel.expansion-panel-darker {
+    background-color:rgba(96, 104, 133, 0.25) !important;
+  }
+
+  .mat-expansion-panel-header.expansion-panel-darker {
+    background-color:rgba(96, 104, 133, 0.25) !important;
+  }
+
+  .theme-background {
+    background-color:#000000 !important;
+    color: #FFFFFF;
+  }
+
+  .snackbar-success {
+    background-color:rgb(13,48,33) !important;
+    color: rgb(59, 220, 150) !important;
+  }
+
+  .snackbar-failed {
+    background-color:rgb(56,20,20) !important;
+    color: rgb(255, 91, 91) !important;
+  }
+
+  .mat-card.mat-card-red {
+    background-color: rgba(255, 91, 91, 0.22) !important;
+    color: rgb(255, 91, 91) !important;
+  }
+
+  .mat-card.mat-card-orange {
+    background-color: rgba(248, 191, 76, 0.22) !important;
+    color: rgb(248, 191, 76) !important;
+  }
+
+  .mat-card.mat-card-green {
+    background-color: rgba(59, 220, 150, 0.22) !important;
+    color: rgb(59, 220, 150) !important;
+  }
+
+  .mat-card.mat-card-blue {
+    background-color: rgba(48, 82, 255, 0.22) !important;
+    color: rgb(48, 82, 255) !important;
+  }
+  
+  @include angular-material-theme($dark-theme);
+}
+
+// Our monlight
+.moonlight-theme {
+  $moonlight-primary: mat-palette($md-xummblue);
+  $moonlight-accent: mat-palette($md-xummorange);
+  $moonlight-warn: mat-palette($md-xummred);  
+  $moonlight-theme: mat-dark-theme($moonlight-primary, $moonlight-accent, $moonlight-warn);
+
+  .body {
+    color: #FFFFFF;
+    opacity: 1;
+  }
+
+  .mat-card {
+    background-color:rgba(96, 104, 133, 0.19) !important;
+  }
+
+  .mat-expansion-panel {
+    background-color:rgba(96, 104, 133, 0.19) !important;
+  }
+
+  .mat-expansion-panel.expansion-panel-light {
+    background-color:rgba(96, 104, 133, 0.19) !important;
+  }
+
+  .mat-expansion-panel-header.expansion-panel-light {
+    background-color:rgba(96, 104, 133, 0.19) !important;
+  }
+
+  .mat-expansion-panel.expansion-panel-darker {
+    background-color:rgba(96, 104, 133, 0.19) !important;
+  }
+
+  .mat-expansion-panel-header.expansion-panel-darker {
+    background-color:rgba(96, 104, 133, 0.19) !important;
+  }
+
+  .theme-background {
+    background-color:rgb(24, 26, 33) !important;
+    color: #FFFFFF;
+  }
+
+  .snackbar-success {
+    background-color:rgb(30,59,53) !important;
+    color: rgb(59, 220, 150) !important;
+  }
+
+  .snackbar-failed {
+    background-color:rgb(63,37,43) !important;
+    color: rgb(255, 91, 91) !important;
+  }
+
+  .mat-card.mat-card-red {
+    background-color: rgba(255, 91, 91, 0.17) !important;
+    color: rgb(255, 91, 91) !important;
+  }
+
+  .mat-card.mat-card-orange {
+    background-color: rgba(248, 191, 76, 0.17) !important;
+    color: rgb(248, 191, 76) !important;
+  }
+
+  .mat-card.mat-card-green {
+    background-color: rgba(59, 220, 150, 0.17) !important;
+    color: rgb(59, 220, 150) !important;
+  }
+
+  .mat-card.mat-card-blue {
+    background-color: rgba(48, 82, 255, 0.17) !important;
+    color: rgb(48, 82, 255) !important;
+  }
+
+  @include angular-material-theme($moonlight-theme);
+}
+
+// Our royal
+.royal-theme {
+  $royal-primary: mat-palette($md-xummblue);
+  $royal-accent: mat-palette($md-xummorange);
+  $royal-warn: mat-palette($md-xummred);  
+  $royal-theme: mat-dark-theme($royal-primary, $royal-accent, $royal-warn);
+
+  .body {
+    color: #FFFFFF;
+    opacity: 1;
+  }
+
+  .mat-card {
+    background-color:rgba(96, 104, 133, 0.22) !important;
+  }
+
+  .mat-expansion-panel {
+    background-color:rgba(96, 104, 133, 0.22) !important;
+  }
+
+  .mat-expansion-panel.expansion-panel-light {
+    background-color:rgba(96, 104, 133, 0.22) !important;
+  }
+
+  .mat-expansion-panel-header.expansion-panel-light {
+    background-color:rgba(96, 104, 133, 0.22) !important;
+  }
+
+  .mat-expansion-panel.expansion-panel-darker {
+    background-color:rgba(96, 104, 133, 0.22) !important;
+  }
+
+  .mat-expansion-panel-header.expansion-panel-darker {
+    background-color:rgba(96, 104, 133, 0.22) !important;
+  }
+
+  .theme-background {
+    background-color:rgb(3, 11, 54) !important;
+    color: #FFFFFF;
+  }
+
+  .snackbar-success {
+    background-color:rgb(30,59,53) !important;
+    color: rgb(59, 220, 150) !important;
+  }
+
+  .snackbar-failed {
+    background-color:rgb(63,37,43) !important;
+    color: rgb(255, 91, 91) !important;
+  }
+
+  .mat-card.mat-card-red {
+    background-color: rgba(255, 91, 91, 0.17) !important;
+    color: rgb(255, 91, 91) !important;
+  }
+
+  .mat-card.mat-card-orange {
+    background-color: rgba(248, 191, 76, 0.17) !important;
+    color: rgb(248, 191, 76) !important;
+  }
+
+  .mat-card.mat-card-green {
+    background-color: rgba(59, 220, 150, 0.17) !important;
+    color: rgb(59, 220, 150) !important;
+  }
+
+  .mat-card.mat-card-blue {
+    background-color: rgba(48, 82, 255, 0.17) !important;
+    color: rgb(48, 82, 255) !important;
+  }
+  
+  @include angular-material-theme($royal-theme);
+}
