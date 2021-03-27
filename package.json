@@ -5,7 +5,7 @@
     "ng": "ng",
     "start": "ng serve --port 4202 --open",
     "build": "ng build --prod",
-    "upload": "ng build --prod & aws s3 --profile myevride rm s3://tokencreate.xapp.xumm.community/ --recursive & aws s3 --profile myevride cp ./dist/xumm-xapp-create-token s3://tokencreate.xapp.xumm.community/ --recursive --include '*' --acl public-read --cache-control public,max-age=604800,no-transform",
+    "upload": "ng build --prod & aws s3 --profile myevride rm s3://tokencreate.xapp.xumm.community/ --recursive & aws s3 --profile myevride cp ./dist/xumm-xapp-token-create s3://tokencreate.xapp.xumm.community/ --recursive --include '*' --acl public-read --cache-control public,max-age=604800,no-transform",
     "invalidate": "aws cloudfront --profile myevride create-invalidation --distribution-id EWZDP7FOQUAIT --paths /*",
     "test": "ng test",
     "lint": "ng lint",

@@ -92,4 +92,22 @@ export class XummService {
             return { error: true, success: false, testnet:false }
         }
     }
+
+    async checkTimedPayment(payloadId:string): Promise<TransactionValidation> {
+        try {
+            return this.app.get(this.xummBackendURL+"/api/v1/check/timed/payment/"+payloadId);
+        } catch(err) {
+            console.log(JSON.stringify(err))
+            return { error: true, success: false, testnet:false }
+        }
+    }
+
+    async signInToValidateTimedPayment(payloadId:string, referer?:string): Promise<TransactionValidation> {
+        try {
+            return this.app.get(this.xummBackendURL+"/api/v1/check/signinToValidatePayment/" + payloadId + (referer ? ("?referer="+referer) :""));
+        } catch(err) {
+            console.log(JSON.stringify(err))
+            return { error: true, success: false, testnet:false }
+        }
+    }
 }
