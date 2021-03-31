@@ -12,6 +12,7 @@ import { OverlayContainer } from '@angular/cdk/overlay';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { webSocket, WebSocketSubject} from 'rxjs/webSocket';
 import { XummTypes } from 'xumm-sdk';
+import { TypeWriter } from './utils/TypeWriter';
 
 @Component({
   selector: 'createToken',
@@ -93,6 +94,9 @@ export class CreateToken implements OnInit, OnDestroy {
 
   recipientAccount:string = null;
 
+  title: string = "Xumm Community xApp";
+  tw: TypeWriter
+
   @ViewChild('stepper') stepper: MatStepper;
 
   async ngOnInit(): Promise<void> {
@@ -138,6 +142,12 @@ export class CreateToken implements OnInit, OnDestroy {
       this.overlayContainer.getContainerElement().classList.add(this.themeClass);
     });
     //this.infoLabel = JSON.stringify(this.device.getDeviceInfo());
+
+    this.tw = new TypeWriter(["Xumm Community xApp", "created by nixerFFM", "Xumm Community xApp"], t => {
+      this.title = t;
+    })
+
+    this.tw.start();
   }
 
   ngOnDestroy() {
@@ -262,7 +272,8 @@ export class CreateToken implements OnInit, OnDestroy {
               TransactionType: "SignIn"
           },
           custom_meta: {
-            blob: { source: "EscrowOwner"}
+            instruction: "Please choose the account which should create the token. This account is called 'Issuer account'.\n\nPlease sign the request to confirm.",
+            blob: { source: "Issuer"}
           }
       }
     }
@@ -305,54 +316,6 @@ export class CreateToken implements OnInit, OnDestroy {
       this.validIssuer = false;
       this.loadingIssuerAccount = false;
     }
-  }
-
-  loginForToken() {
-    const dialogRef = this.matDialog.open(XummSignDialogComponent, {
-      width: 'auto',
-      height: 'auto;',
-      data: {xrplAccount: null}
-    });
-
-    dialogRef.afterClosed().subscribe(async (info:TransactionValidation) => {
-      //console.log('The signin dialog was closed: ' + JSON.stringify(info));
-      this.loadingIssuerAccount = true;
-
-      if(info && info.success && info.account && isValidXRPAddress(info.account)) {
-        let refererURL:string;
-        if(document.URL.includes('?')) {
-            refererURL = document.URL.substring(0, document.URL.indexOf('?'));
-        } else {
-            refererURL = document.URL;
-        }
-        let checkPayment:TransactionValidation = await this.xummApi.signInToValidateTimedPayment(info.payloadId, refererURL);
-        //console.log("login to validate payment: " + JSON.stringify(checkPayment));
-        if(checkPayment && checkPayment.success && (!checkPayment.testnet || this.isTestMode)) {
-          this.issuerAccount = info.account;
-          this.validIssuer = true;
-          this.paymentNotSuccessfull = false;
-          this.paymentNotFound = false;
-          await this.loadAccountData();
-          this.googleAnalytics.analyticsEventEmitter('login_for_token', 'easy_token', 'easy_token_component');
-        } else {
-          this.issuerAccount = info.account;
-          this.validIssuer = true;
-          this.paymentNotFound = true;
-          this.paymentNotSuccessfull = false;
-          this.loadingIssuerAccount = false;
-        }
-      } else if(info && info.account) {
-        this.issuerAccount = info.account;
-        this.validIssuer = true;
-        this.paymentNotFound = true;
-        this.paymentNotSuccessfull = false;
-        this.loadingIssuerAccount = false;
-      } else {
-        this.issuerAccount = null;
-        this.validIssuer = false;
-        this.loadingIssuerAccount = false;
-      }
-    });
   }
 
   async loadAccountDataIssuer(xrplAccount: string) {
@@ -467,7 +430,7 @@ export class CreateToken implements OnInit, OnDestroy {
     }
   }
 
-  issueToken() {
+  async issueToken() {
     let genericBackendRequest:GenericBackendPostRequest = {
       options: {
         issuing: true,
@@ -487,27 +450,21 @@ export class CreateToken implements OnInit, OnDestroy {
           instruction: "- Issuing " + this.limit + " " + this.currencyCode + " to: " + this.recipientAddress + "\n\n- Please sign with the ISSUER account!"
         }
       }
-    } 
-    
-    const dialogRef = this.matDialog.open(GenericPayloadQRDialog, {
-      width: 'auto',
-      height: 'auto;',
-      data: genericBackendRequest
-    });
+    }
 
-    dialogRef.afterClosed().subscribe(async (info:TransactionValidation) => {
-      //console.log('The generic dialog was closed: ' + JSON.stringify(info));
+    let message:any = await this.waitForTransactionSigning(genericBackendRequest);
 
-      if(info && info.success && info.account && info.testnet == this.isTestMode) {
-        this.weHaveIssued = true;
-        this.googleAnalytics.analyticsEventEmitter('token_created', 'easy_token', 'easy_token_component');
-      } else {
-        this.weHaveIssued = false;
-      }
-    });
+    let txInfo = await this.xummApi.validateTransaction(message.payload_uuidv4);
+
+    if(txInfo && txInfo.success && txInfo.account && txInfo.testnet == this.isTestMode) {
+      this.weHaveIssued = true;
+      this.googleAnalytics.analyticsEventEmitter('token_created', 'easy_token', 'easy_token_component');
+    } else {
+      this.weHaveIssued = false;
+    }
   }
 
-  disallowIncomingXrp() {
+  async disallowIncomingXrp() {
     let genericBackendRequest:GenericBackendPostRequest = {
       options: {
         issuing: true,
@@ -524,25 +481,18 @@ export class CreateToken implements OnInit, OnDestroy {
       }
     }
 
-    const dialogRef = this.matDialog.open(GenericPayloadQRDialog, {
-      width: 'auto',
-      height: 'auto;',
-      data: genericBackendRequest
-    });
+    let message:any = await this.waitForTransactionSigning(genericBackendRequest);
 
-    dialogRef.afterClosed().subscribe(async (info:TransactionValidation) => {
-      //console.log('The generic dialog was closed: ' + JSON.stringify(info));
+    let txInfo = await this.xummApi.validateTransaction(message.payload_uuidv4);
 
-      if(info && info.success && info.account && info.testnet == this.isTestMode) {
-        this.blackholeDisallowXrp = true;
-      } else {
-        this.blackholeDisallowXrp = false;
-      }
-    });
-
+    if(txInfo && txInfo.success && txInfo.account && txInfo.testnet == this.isTestMode) {
+      this.blackholeDisallowXrp = true;
+    } else {
+      this.blackholeDisallowXrp = false;
+    }
   }
 
-  setBlackholeAddress() {
+  async setBlackholeAddress() {
     let genericBackendRequest:GenericBackendPostRequest = {
       options: {
         issuing: true,
@@ -559,25 +509,18 @@ export class CreateToken implements OnInit, OnDestroy {
       }
     }
 
-    const dialogRef = this.matDialog.open(GenericPayloadQRDialog, {
-      width: 'auto',
-      height: 'auto;',
-      data: genericBackendRequest
-    });
+    let message:any = await this.waitForTransactionSigning(genericBackendRequest);
 
-    dialogRef.afterClosed().subscribe(async (info:TransactionValidation) => {
-      //console.log('The generic dialog was closed: ' + JSON.stringify(info));
+    let txInfo = await this.xummApi.validateTransaction(message.payload_uuidv4);
 
-      if(info && info.success && info.account && info.testnet == this.isTestMode) {
-        this.blackholeRegularKeySet = true;
-      } else {
-        this.blackholeRegularKeySet = false;
-      }
-    });
-
+    if(txInfo && txInfo.success && txInfo.account && txInfo.testnet == this.isTestMode) {
+      this.blackholeRegularKeySet = true;
+    } else {
+      this.blackholeRegularKeySet = false;
+    }
   }
 
-  disableMasterKeyForIssuer() {
+  async disableMasterKeyForIssuer() {
     let genericBackendRequest:GenericBackendPostRequest = {
       options: {
         issuing: true,
@@ -594,23 +537,16 @@ export class CreateToken implements OnInit, OnDestroy {
       }
     }
 
-    const dialogRef = this.matDialog.open(GenericPayloadQRDialog, {
-      width: 'auto',
-      height: 'auto;',
-      data: genericBackendRequest
-    });
+    let message:any = await this.waitForTransactionSigning(genericBackendRequest);
 
-    dialogRef.afterClosed().subscribe(async (info:TransactionValidation) => {
-      //console.log('The generic dialog was closed: ' + JSON.stringify(info));
+    let txInfo = await this.xummApi.validateTransaction(message.payload_uuidv4);
 
-      if(info && info.success && info.account && info.testnet == this.isTestMode) {
-        this.blackholeMasterDisabled = true;
-        this.googleAnalytics.analyticsEventEmitter('account_black_hole_succeed', 'easy_token', 'easy_token_component');
-      } else {
-        this.blackholeMasterDisabled = false;
-      }
-    });
-
+    if(txInfo && txInfo.success && txInfo.account && txInfo.testnet == this.isTestMode) {
+      this.blackholeMasterDisabled = true;
+      this.googleAnalytics.analyticsEventEmitter('account_black_hole_succeed', 'easy_token', 'easy_token_component');
+    } else {
+      this.blackholeMasterDisabled = false;
+    }
   }
 
   moveNext() {
