@@ -32,13 +32,13 @@ export class CreateToken implements OnInit, OnDestroy {
     private xrplWebSocket: XRPLWebsocket,
     private googleAnalytics: GoogleAnalyticsService) { }
 
-  checkBoxTwoAccounts:boolean = false;
-  checkBoxIssuerInfo:boolean = false;
-  checkBoxSufficientFunds:boolean = false;
-  checkBoxFiveXrp:boolean = false;
-  checkBoxNetwork:boolean = false;
-  checkBoxNoLiability:boolean = false;
-  checkBoxDisclaimer:boolean = false;
+  checkBoxTwoAccounts:boolean = true;
+  checkBoxIssuerInfo:boolean = true;
+  checkBoxSufficientFunds:boolean = true;
+  checkBoxFiveXrp:boolean = true;
+  checkBoxNetwork:boolean = true;
+  checkBoxNoLiability:boolean = true;
+  checkBoxDisclaimer:boolean = true;
 
   checkBoxBlackhole1:boolean = false;
   checkBoxBlackhole2:boolean = false;
@@ -53,6 +53,7 @@ export class CreateToken implements OnInit, OnDestroy {
   blackholeMasterDisabled:boolean = false;
 
   issuer_account_info:any;
+  recipient_account_info:any;
   isTestMode:boolean = false;
 
   private issuerAccount: string;
@@ -66,12 +67,11 @@ export class CreateToken implements OnInit, OnDestroy {
 
   transactionSuccessfull: Subject<void> = new Subject<void>();
 
-  paymentNotSuccessfull:boolean = false;
-  paymentNotFound: boolean = false;
-  loadingIssuerAccount:boolean = false;
+  paymentSuccessfull:boolean = false;
+  paymentFound: boolean = false;
+  paymentStarted:boolean = false;
 
   needDefaultRipple:boolean = true;
-  recipientAddress:string;
   recipientTrustlineSet:boolean = false;
   weHaveIssued:boolean = false;
 
@@ -87,12 +87,12 @@ export class CreateToken implements OnInit, OnDestroy {
   themeClass = 'dark-theme';
   backgroundColor = '#000000';
 
-  testMode:boolean = false;
   loadingData:boolean = false;
 
   websocket: WebSocketSubject<any>;
 
-  recipientAccount:string = null;
+  infoLabel:string = null;
+  infoLabel2:string = null;
 
   title: string = "Xumm Community xApp";
   tw: TypeWriter
@@ -101,20 +101,22 @@ export class CreateToken implements OnInit, OnDestroy {
 
   async ngOnInit(): Promise<void> {
     this.ottReceived = this.ottChanged.subscribe(async ottData => {
+      this.infoLabel = "ott received: " + JSON.stringify(ottData);
       //console.log("ottReceived: " + JSON.stringify(ottData));
 
       if(ottData) {
 
         //this.infoLabel = JSON.stringify(ottData);
         
-        this.testMode = ottData.nodetype == 'TESTNET';
+        this.isTestMode = ottData.nodetype == 'TESTNET';
 
         //this.infoLabel = "changed mode to testnet: " + this.testMode;
 
         if(ottData && ottData.account && ottData.accountaccess == 'FULL') {
 
-          await this.loadAccountDataIssuer(ottData.account);
-          this.loadingData = false;
+          this.issuer_account_info = "no account";
+          //await this.loadAccountDataIssuer(ottData.account);
+          //this.loadingData = false;
 
           //await this.loadAccountData(ottData.account); //false = ottResponse.node == 'TESTNET' 
         } else {
@@ -129,6 +131,8 @@ export class CreateToken implements OnInit, OnDestroy {
     });
 
     this.themeReceived = this.themeChanged.subscribe(async appStyle => {
+
+      this.infoLabel2 = JSON.stringify(appStyle);
 
       this.themeClass = appStyle.theme;
       this.backgroundColor = appStyle.color;
@@ -170,7 +174,7 @@ export class CreateToken implements OnInit, OnDestroy {
         //console.log("sending xumm payload: " + JSON.stringify(xummPayload));
         xummResponse = await this.xummApi.submitPayload(payloadRequest);
         //this.infoLabel = "Called xumm successfully"
-        console.log(JSON.stringify(xummResponse));
+        //this.infoLabel = (JSON.stringify(xummResponse));
         if(!xummResponse || !xummResponse.uuid) {
           this.snackBar.open("Error contacting XUMM backend", null, {panelClass: 'snackbar-failed', duration: 3000, horizontalPosition: 'center', verticalPosition: 'top'});
           return;
@@ -182,6 +186,7 @@ export class CreateToken implements OnInit, OnDestroy {
     }
 
     if (typeof window.ReactNativeWebView !== 'undefined') {
+      //this.infoLabel = "opening sign request";
       window.ReactNativeWebView.postMessage(JSON.stringify({
         command: 'openSignRequest',
         uuid: xummResponse.uuid
@@ -194,66 +199,78 @@ export class CreateToken implements OnInit, OnDestroy {
     if(this.websocket && !this.websocket.closed) {
       this.websocket.unsubscribe();
       this.websocket.complete();
-  }
+    }
 
-    this.websocket = webSocket(xummResponse.refs.websocket_status);
-    this.websocket.asObservable().subscribe(async message => {
-        //console.log("message received: " + JSON.stringify(message));
-        //this.infoLabel = "message received: " + JSON.stringify(message);
+    return new Promise( (resolve, reject) => {
 
-        if(message.payload_uuidv4 && message.payload_uuidv4 === xummResponse.uuid) {
+      this.websocket = webSocket(xummResponse.refs.websocket_status);
+      this.websocket.asObservable().subscribe(async message => {
+          //console.log("message received: " + JSON.stringify(message));
+          //this.infoLabel = "message received: " + JSON.stringify(message);
+
+          if(message.payload_uuidv4 && message.payload_uuidv4 === xummResponse.uuid) {
+              
+            if(this.websocket) {
+              this.websocket.unsubscribe();
+              this.websocket.complete();
+            }
+
+            if(message.signed) {
+              return resolve(message);
+            } else {
+              return resolve(message);
+            }
+          } else if(message.expired || message.expires_in_seconds <= 0) {
             
-          if(this.websocket) {
-            this.websocket.unsubscribe();
-            this.websocket.complete();
-          }
+            if(this.websocket) {
+              this.websocket.unsubscribe();
+              this.websocket.complete();
+            }
 
-          if(message.signed) {
-              return Promise.resolve(message);
-          } else {
-            return Promise.reject(message);
+            return resolve(message);
           }
-        } else if(message.expired || message.expires_in_seconds <= 0) {
-          
-          if(this.websocket) {
-            this.websocket.unsubscribe();
-            this.websocket.complete();
-          }
-
-          return Promise.reject(message);
-        }
+      });
     });
   }
 
   async payForToken() {
+    this.loadingData = true;
+
     let genericBackendRequest:GenericBackendPostRequest = {
+      options: {
+        xrplAccount: this.issuer_account_info.Account
+      },
       payload: {
+        options: {
+          forceAccount: true
+        },
         txjson: {
           TransactionType: "Payment",
-          Memos : [{Memo: {MemoType: Buffer.from("[https://xumm.community]-Memo", 'utf8').toString('hex').toUpperCase(), MemoData: Buffer.from("Payment for creating Token: '"+this.currencyCode.trim()+"'", 'utf8').toString('hex').toUpperCase()}}]
+          Memos : [{Memo: {MemoType: Buffer.from("[https://xumm.community]-Memo", 'utf8').toString('hex').toUpperCase(), MemoData: Buffer.from("Payment for creating Token via xApp: '"+this.currencyCode.trim()+"'", 'utf8').toString('hex').toUpperCase()}}]
         },
         custom_meta: {
-          instruction: "Please pay with the account you want to issue your Token from!",
+          instruction: "Please pay with the account you want to issue your Token from! (Issuer Account)",
         }
       }
     }
 
     let message:any = await this.waitForTransactionSigning(genericBackendRequest);
 
+    this.paymentStarted = true;
+
     let txInfo = await this.xummApi.checkTimedPayment(message.payload_uuidv4);
       //console.log('The generic dialog was closed: ' + JSON.stringify(info));
 
-    if(txInfo && txInfo.success && txInfo.account && (!txInfo.testnet || this.isTestMode)) {
+    if(txInfo && txInfo.success && txInfo.account && txInfo.testnet == this.isTestMode) {
       if(isValidXRPAddress(txInfo.account))
-        this.issuerAccount = txInfo.account;
-        this.validIssuer = true;
-        this.paymentNotSuccessfull = false;
-        this.paymentNotFound = false;
-        await this.loadAccountDataIssuer(this.issuerAccount);
+        this.paymentSuccessfull = true;
+      else
+        this.paymentSuccessfull = false;
     } else {
-      this.paymentNotSuccessfull = true;
-      this.paymentNotFound = false;
+      this.paymentSuccessfull = false;
     }
+
+    this.loadingData = false;
   }
 
   async signInWithIssuerAccount() {
@@ -280,42 +297,26 @@ export class CreateToken implements OnInit, OnDestroy {
 
     let message:any = await this.waitForTransactionSigning(backendPayload);
 
-    let transactionResult = await this.xummApi.checkSignIn(message.payload_uuidv4);
+    this.infoLabel = "label 1 received: " + JSON.stringify(message);
 
-    if(transactionResult && transactionResult.success && transactionResult.account && isValidXRPAddress(transactionResult.account)) {
-      let refererURL:string;
-      if(document.URL.includes('?')) {
-          refererURL = document.URL.substring(0, document.URL.indexOf('?'));
-      } else {
-          refererURL = document.URL;
-      }
-      let checkPayment:TransactionValidation = await this.xummApi.signInToValidateTimedPayment(transactionResult.payloadId, refererURL);
-      //console.log("login to validate payment: " + JSON.stringify(checkPayment));
-      if(checkPayment && checkPayment.success && (!checkPayment.testnet || this.isTestMode)) {
-        this.issuerAccount = transactionResult.account;
-        this.validIssuer = true;
-        this.paymentNotSuccessfull = false;
-        this.paymentNotFound = false;
-        await this.loadAccountDataIssuer(this.issuerAccount);
-        this.googleAnalytics.analyticsEventEmitter('login_for_token', 'easy_token', 'easy_token_component');
-      } else {
-        this.issuerAccount = transactionResult.account;
-        this.validIssuer = true;
-        this.paymentNotFound = true;
-        this.paymentNotSuccessfull = false;
-        this.loadingIssuerAccount = false;
-      }
-    } else if(transactionResult && transactionResult.account) {
-      this.issuerAccount = transactionResult.account;
+    let checkPayment:TransactionValidation = await this.xummApi.signInToValidateTimedPayment(message.payload_uuidv4);
+    this.infoLabel2 = "signInToValidateTimedPayment: " + JSON.stringify(checkPayment);
+    //console.log("login to validate payment: " + JSON.stringify(checkPayment));
+    if(checkPayment && checkPayment.success && checkPayment.testnet == this.isTestMode) {
+      this.issuerAccount = checkPayment.account;
       this.validIssuer = true;
-      this.paymentNotFound = true;
-      this.paymentNotSuccessfull = false;
-      this.loadingIssuerAccount = false;
+      this.paymentFound = true;
+      //this.googleAnalytics.analyticsEventEmitter('login_for_token', 'easy_token', 'easy_token_component');
     } else {
-      this.issuerAccount = null;
-      this.validIssuer = false;
-      this.loadingIssuerAccount = false;
+      this.issuerAccount = checkPayment.account;
+      this.validIssuer = true;
+      this.paymentFound = false;
     }
+
+
+    await this.loadAccountDataIssuer(this.issuerAccount);
+
+    this.loadingData = false;
   }
 
   async loadAccountDataIssuer(xrplAccount: string) {
@@ -330,7 +331,7 @@ export class CreateToken implements OnInit, OnDestroy {
         "strict": true,
       }
 
-      let message_acc_info:any = await this.xrplWebSocket.getWebsocketMessage("token-create", account_info_request, this.testMode);
+      let message_acc_info:any = await this.xrplWebSocket.getWebsocketMessage("token-create", account_info_request, this.isTestMode);
       //console.log("xrpl-transactions account info: " + JSON.stringify(message_acc_info));
       //this.infoLabel = JSON.stringify(message_acc_info);
       if(message_acc_info && message_acc_info.status && message_acc_info.type && message_acc_info.type === 'response') {
@@ -338,7 +339,7 @@ export class CreateToken implements OnInit, OnDestroy {
           this.issuer_account_info = message_acc_info.result.account_data;
 
           this.needDefaultRipple = !flagUtil.isDefaultRippleEnabled(this.issuer_account_info.Flags)
-          this.blackholeDisallowXrp = flagUtil.isDisallowXRPEnabled(this.issuer_account_info);
+          this.blackholeDisallowXrp = flagUtil.isDisallowXRPEnabled(this.issuer_account_info.Flags);
           this.blackholeMasterDisabled = flagUtil.isMasterKeyDisabled(this.issuer_account_info.Flags)
         } else {
           this.issuer_account_info = message_acc_info;
@@ -351,12 +352,107 @@ export class CreateToken implements OnInit, OnDestroy {
     }
   }
 
+  getAvailableBalanceIssuer(): number {
+    return this.getAvailableBalance(this.issuer_account_info);
+  }
+
+  getAvailableBalanceRecipient(): number {
+    return this.getAvailableBalance(this.recipient_account_info);
+  }
+
+  getAvailableBalance(accountInfo: any): number {
+    if(accountInfo && accountInfo.Balance) {
+      let balance:number = Number(accountInfo.Balance);
+      balance = balance - (20*1000000); //deduct acc reserve
+      balance = balance - (accountInfo.OwnerCount * 5 * 1000000); //deduct owner count
+      balance = balance/1000000;
+
+      if(balance >= 0.000001)
+        return balance
+      else
+        return 0;
+      
+    } else {
+      return 0;
+    }
+  }
+
+  async signInWithRecipientAccount() {
+    this.loadingData = true;
+    //setting up xumm payload and waiting for websocket
+    let backendPayload:GenericBackendPostRequest = {
+      options: {
+          web: false,
+          signinToValidate: true
+      },
+      payload: {
+          options: {
+              expire: 5
+          },
+          txjson: {
+              TransactionType: "SignIn"
+          },
+          custom_meta: {
+            instruction: "Please choose the account which should receive your token. This account is called 'Recipient account'.\n\nPlease sign the request to confirm.",
+            blob: { source: "Recipient"}
+          }
+      }
+    }
+
+    let message:any = await this.waitForTransactionSigning(backendPayload);
+
+    let transactionResult = await this.xummApi.checkSignIn(message.payload_uuidv4);
+
+    if(transactionResult && transactionResult.account && isValidXRPAddress(transactionResult.account)) {
+      await this.loadAccountDataRecipient(transactionResult.account);
+    } else {
+      this.recipient_account_info = null;
+    }
+
+    this.loadingData = false;
+  }
+
+  async loadAccountDataRecipient(xrplAccount: string) {
+    this.loadingData = true;
+    //this.infoLabel = "loading " + xrplAccount;
+    if(xrplAccount && isValidXRPAddress(xrplAccount)) {
+      //this.googleAnalytics.analyticsEventEmitter('loading_account_data', 'account_data', 'xrpl_transactions_component');
+      this.loadingData = true;
+      
+      let account_info_request:any = {
+        command: "account_info",
+        account: xrplAccount,
+        "strict": true,
+      }
+
+      let message_acc_info:any = await this.xrplWebSocket.getWebsocketMessage("token-create", account_info_request, this.isTestMode);
+      //console.log("xrpl-transactions account info: " + JSON.stringify(message_acc_info));
+      //this.infoLabel = JSON.stringify(message_acc_info);
+      if(message_acc_info && message_acc_info.status && message_acc_info.type && message_acc_info.type === 'response') {
+        if(message_acc_info.status === 'success' && message_acc_info.result && message_acc_info.result.account_data) {
+          this.recipient_account_info = message_acc_info.result.account_data;
+        } else {
+          this.recipient_account_info = message_acc_info;
+        }
+      } else {
+        this.recipient_account_info = "no account";
+      }
+    } else {
+      this.recipient_account_info = "no account"
+    }
+  }
+
   async sendDefaultRipple() {
+    this.loadingData = true;
+
     let genericBackendRequest:GenericBackendPostRequest = {
       options: {
         xrplAccount: this.issuerAccount
       },
       payload: {
+        options: {
+          forceAccount: true
+        },
         txjson: {
           TransactionType: "AccountSet",
           SetFlag: this.ACCOUNT_FLAG_DEFAULT_RIPPLE
@@ -372,14 +468,17 @@ export class CreateToken implements OnInit, OnDestroy {
     let txInfo = await this.xummApi.validateTransaction(message.payload_uuidv4);
     
     if(txInfo && txInfo.success && txInfo.testnet == this.isTestMode) {
-      if(this.issuerAccount === txInfo.account)
+      if(this.issuerAccount == txInfo.account)
         await this.loadAccountDataIssuer(this.issuerAccount);
       else { //signed with wrong account
-
+        this.snackBar.open("You signed with the wrong account. Please sign with Issuer Account!", null, {panelClass: 'snackbar-failed', duration: 5000, horizontalPosition: 'center', verticalPosition: 'top'});
       }
     } else {
-
+      //tx not successfull
+      this.snackBar.open("Transaction not successfull!", null, {panelClass: 'snackbar-failed', duration: 5000, horizontalPosition: 'center', verticalPosition: 'top'});
     }
+
+    this.loadingData = false;
   }
 
   checkChangesCurrencyCode() {
@@ -398,11 +497,16 @@ export class CreateToken implements OnInit, OnDestroy {
   }
 
   async setTrustline() {
+    this.loadingData = true;
+
     let genericBackendRequest:GenericBackendPostRequest = {
       options: {
-        xrplAccount: this.recipientAccount
+        xrplAccount: this.recipient_account_info.Account
       },
       payload: {
+        options: {
+          forceAccount: true
+        },
         txjson: {
           TransactionType: "TrustSet",
           Flags: 131072, //no ripple
@@ -420,26 +524,39 @@ export class CreateToken implements OnInit, OnDestroy {
 
     let message:any = await this.waitForTransactionSigning(genericBackendRequest);
 
+    this.infoLabel = "setTrustline " + JSON.stringify(this.recipient_account_info);
+
     let info = await this.xummApi.validateTransaction(message.payload_uuidv4)
 
     if(info && info.success && info.account && info.testnet == this.isTestMode) {
-      this.recipientTrustlineSet = true;
-      this.recipientAddress = info.account;
+      if(this.recipient_account_info.Account == info.account) {
+        this.recipientTrustlineSet = true;
+      } else {
+        this.recipientTrustlineSet = false;
+        this.snackBar.open("You signed with the wrong account. Please sign with Recipient Account!", null, {panelClass: 'snackbar-failed', duration: 5000, horizontalPosition: 'center', verticalPosition: 'top'});
+      }
     } else {
       this.recipientTrustlineSet = false;
+      this.snackBar.open("Transaction not successfull!", null, {panelClass: 'snackbar-failed', duration: 5000, horizontalPosition: 'center', verticalPosition: 'top'});
     }
+
+    this.loadingData = false;
   }
 
   async issueToken() {
+    this.loadingData = true;
     let genericBackendRequest:GenericBackendPostRequest = {
       options: {
         issuing: true,
         xrplAccount: this.issuerAccount
       },
       payload: {
+        options: {
+          forceAccount: true
+        },
         txjson: {
           TransactionType: "Payment",
-          Destination: this.recipientAddress,
+          Destination: this.recipient_account_info.Account,
           Amount: {
             currency: normalizer.getCurrencyCodeForXRPL(this.currencyCode),
             issuer: this.issuerAccount.trim(),
@@ -447,7 +564,7 @@ export class CreateToken implements OnInit, OnDestroy {
           }
         },
         custom_meta: {
-          instruction: "- Issuing " + this.limit + " " + this.currencyCode + " to: " + this.recipientAddress + "\n\n- Please sign with the ISSUER account!"
+          instruction: "- Issuing " + this.limit + " " + this.currencyCode + " to: " + this.recipient_account_info.Account + "\n\n- Please sign with the ISSUER account!"
         }
       }
     }
@@ -457,20 +574,74 @@ export class CreateToken implements OnInit, OnDestroy {
     let txInfo = await this.xummApi.validateTransaction(message.payload_uuidv4);
 
     if(txInfo && txInfo.success && txInfo.account && txInfo.testnet == this.isTestMode) {
-      this.weHaveIssued = true;
-      this.googleAnalytics.analyticsEventEmitter('token_created', 'easy_token', 'easy_token_component');
+      if(this.issuerAccount == txInfo.account) {
+        this.weHaveIssued = true;
+      } else {
+        this.weHaveIssued = false;
+        this.snackBar.open("You signed with the wrong account. Please sign with Issuer Account!", null, {panelClass: 'snackbar-failed', duration: 5000, horizontalPosition: 'center', verticalPosition: 'top'});
+      }
+      //this.googleAnalytics.analyticsEventEmitter('token_created', 'easy_token', 'easy_token_component');
     } else {
       this.weHaveIssued = false;
+      this.snackBar.open("Transaction not successfull!", null, {panelClass: 'snackbar-failed', duration: 5000, horizontalPosition: 'center', verticalPosition: 'top'});
     }
+
+    this.loadingData = false;
+  }
+
+  async sendRemainingXRP() {
+    this.loadingData = true;
+    let genericBackendRequest:GenericBackendPostRequest = {
+      options: {
+        issuing: true,
+        xrplAccount: this.issuerAccount
+      },
+      payload: {
+        options: {
+          forceAccount: true
+        },
+        txjson: {
+          TransactionType: "Payment",
+          Destination: this.recipient_account_info.Account,
+          Amount: this.getAvailableBalanceIssuer()*1000000
+        },
+        custom_meta: {
+          instruction: "- Sending " + this.getAvailableBalanceIssuer()*1000000 + " XRP to: " + this.recipient_account_info.Account + "to empty issuer account\n\n- Please sign with the ISSUER account!"
+        }
+      }
+    }
+
+    let message:any = await this.waitForTransactionSigning(genericBackendRequest);
+
+    let txInfo = await this.xummApi.validateTransaction(message.payload_uuidv4);
+
+    if(txInfo && txInfo.success && txInfo.account && txInfo.testnet == this.isTestMode) {
+      if(this.issuerAccount == txInfo.account) {
+        await this.loadAccountDataIssuer(this.issuerAccount);
+      } else {
+        await this.loadAccountDataIssuer(this.issuerAccount);
+        this.snackBar.open("You signed with the wrong account. Please sign with Issuer Account!", null, {panelClass: 'snackbar-failed', duration: 5000, horizontalPosition: 'center', verticalPosition: 'top'});
+      }
+      //this.googleAnalytics.analyticsEventEmitter('token_created', 'easy_token', 'easy_token_component');
+    } else {
+      await this.loadAccountDataIssuer(this.issuerAccount);
+      this.snackBar.open("Transaction not successfull!", null, {panelClass: 'snackbar-failed', duration: 5000, horizontalPosition: 'center', verticalPosition: 'top'});
+    }
+
+    this.loadingData = false;
   }
 
   async disallowIncomingXrp() {
+    this.loadingData = true;
     let genericBackendRequest:GenericBackendPostRequest = {
       options: {
         issuing: true,
         xrplAccount: this.getIssuer()
       },
       payload: {
+        options: {
+          forceAccount: true
+        },
         txjson: {
           TransactionType: "AccountSet",
           SetFlag: this.ACCOUNT_FLAG_DISABLE_INCOMING_XRP
@@ -490,15 +661,21 @@ export class CreateToken implements OnInit, OnDestroy {
     } else {
       this.blackholeDisallowXrp = false;
     }
+
+    this.loadingData = false;
   }
 
   async setBlackholeAddress() {
+    this.loadingData = true;
     let genericBackendRequest:GenericBackendPostRequest = {
       options: {
         issuing: true,
         xrplAccount: this.getIssuer()
       },
       payload: {
+        options: {
+          forceAccount: true
+        },   
         txjson: {
           TransactionType: "SetRegularKey",
           RegularKey: "rrrrrrrrrrrrrrrrrrrrBZbvji"
@@ -518,15 +695,22 @@ export class CreateToken implements OnInit, OnDestroy {
     } else {
       this.blackholeRegularKeySet = false;
     }
+
+    this.loadingData = false;
   }
 
   async disableMasterKeyForIssuer() {
+    this.loadingData = true;
+
     let genericBackendRequest:GenericBackendPostRequest = {
       options: {
         issuing: true,
         xrplAccount: this.getIssuer()
       },
       payload: {
+        options: {
+          forceAccount: true
+        },
         txjson: {
           TransactionType: "AccountSet",
           SetFlag: this.ACCOUNT_FLAG_DISABLE_MASTER_KEY
@@ -543,9 +727,19 @@ export class CreateToken implements OnInit, OnDestroy {
 
     if(txInfo && txInfo.success && txInfo.account && txInfo.testnet == this.isTestMode) {
       this.blackholeMasterDisabled = true;
-      this.googleAnalytics.analyticsEventEmitter('account_black_hole_succeed', 'easy_token', 'easy_token_component');
+      //this.googleAnalytics.analyticsEventEmitter('account_black_hole_succeed', 'easy_token', 'easy_token_component');
     } else {
       this.blackholeMasterDisabled = false;
+    }
+
+    this.loadingData = false;
+  }
+
+  close() {
+    if (typeof window.ReactNativeWebView !== 'undefined') {
+      window.ReactNativeWebView.postMessage(JSON.stringify({
+        command: 'close'
+      }));
     }
   }
 
@@ -591,7 +785,7 @@ export class CreateToken implements OnInit, OnDestroy {
       case 4: {
         this.issuerAccount = this.issuer_account_info = null;
         this.validIssuer = false;
-        this.paymentNotFound = this.paymentNotSuccessfull = false;
+        this.paymentFound = this.paymentSuccessfull = false;
         this.needDefaultRipple = true;
         break;
       }
@@ -600,7 +794,6 @@ export class CreateToken implements OnInit, OnDestroy {
       }
       case 6: {
         this.recipientTrustlineSet = false;
-        this.recipientAddress = null;
         break;
       }
       case 7: {
@@ -620,9 +813,9 @@ export class CreateToken implements OnInit, OnDestroy {
 
   clearIssuerAccount() {
     this.issuerAccount = null;
-    this.loadingIssuerAccount = false;
-    this.paymentNotFound = false;
-    this.paymentNotSuccessfull = false;
+    this.loadingData = false;
+    this.paymentFound = false;
+    this.paymentSuccessfull = false;
     this.validIssuer = false;
     this.issuer_account_info = null;
     this.needDefaultRipple = true;
@@ -634,10 +827,10 @@ export class CreateToken implements OnInit, OnDestroy {
     this.currencyCode = this.limit = null;
     this.validCurrencyCode = this.validLimit = false;
     this.issuerAccount = this.issuer_account_info = null;
-    this.validIssuer = this.paymentNotFound = this.paymentNotSuccessfull = false;
+    this.validIssuer = this.paymentFound = this.paymentSuccessfull = false;
     this.needDefaultRipple = true;
     this.recipientTrustlineSet = false;
-    this.recipientAddress = null;
+    this.recipient_account_info = null;
     this.weHaveIssued = false;
     this.checkBoxBlackhole1 = this.checkBoxBlackhole2 = this.checkBoxBlackhole3 = this.checkBoxBlackhole4 =this.checkBoxBlackhole5 = false;
     this.blackholeMasterDisabled = this.blackholeRegularKeySet = this.blackholeDisallowXrp =  false;

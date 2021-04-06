@@ -86,18 +86,25 @@ export class AppComponent implements OnInit {
       this.appStyleChanged.next({theme: this.themeClass, color: this.backgroundColor});
 
       if(xAppToken) {
-        let ottResponse:any = await this.xummService.getxAppOTTData(xAppToken);
-        //console.log("ottResponse: " + JSON.stringify(ottResponse));
-
-        this.alreadySent = true;
-
-        if(ottResponse && ottResponse.error) {
-          //console.log("error OTT, only sending app style");
-          this.ottReceived.next({style: xAppStyle});
-        } else {
-          this.ottReceived.next(ottResponse);
+        try {
+          this.infoLabel = "calling backend";
+          let ottResponse:any = await this.xummService.getxAppOTTData(xAppToken);
+          //console.log("ottResponse: " + JSON.stringify(ottResponse));
+          this.infoLabel = "ott from backend: " + JSON.stringify(ottResponse);
+  
           this.alreadySent = true;
-        }      
+  
+          if(ottResponse && ottResponse.error) {
+            //console.log("error OTT, only sending app style");
+            this.ottReceived.next({style: xAppStyle});
+          } else {
+            this.ottReceived.next(ottResponse);
+            this.alreadySent = true;
+          }      
+        } catch(err) {
+          this.infoLabel = "error: " + JSON.stringify(err);
+        }
+        
       } else {
         //didn't got an ott. Just send over the app style (even if not available)
         this.timeout1 = setTimeout(() => {

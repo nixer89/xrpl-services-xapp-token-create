@@ -1,4 +1,4 @@
-<div [class]="themeClass" fxFlex fxLayout="column">
+<div [class]="themeClass">
 
   <mat-toolbar fxLayout="row" color="primary" style="background-color: rgb(48, 82, 255);"class="mat-elevation-z4">  
     <mat-toolbar-row>
@@ -9,11 +9,11 @@
     </mat-toolbar-row>
   </mat-toolbar>
 
-  <!--label *ngIf="infoLabel" style="color: red">{{infoLabel}}</label><br>
+  <label *ngIf="infoLabel" style="color: red">{{infoLabel}}</label><br><br>
   <label *ngIf="infoLabel2" style="color: red">{{infoLabel2}}</label>
-  <label *ngIf="infoLabel3" style="color: red">{{infoLabel3}}</label-->
+  <!--label *ngIf="infoLabel3" style="color: red">{{infoLabel3}}</label-->
 
-  <mat-vertical-stepper linear #stepper>
+  <mat-vertical-stepper linear #stepper class="theme-background">
     <mat-step completed="false" editable="false">
         <mat-card fxLayout="column" fxLayoutGap="0.5em">
             <ng-template matStepLabel>Description</ng-template>
@@ -43,7 +43,7 @@
           <mat-checkbox [(ngModel)]="checkBoxTwoAccounts" [ngClass]="(checkBoxTwoAccounts ? 'xumm-green': 'xumm-red')">You have the keys of two accounts. One for issuing and one for receiving your Token.</mat-checkbox>
           <mat-checkbox [(ngModel)]="checkBoxIssuerInfo" [ngClass]="(checkBoxIssuerInfo ? 'xumm-green': 'xumm-red')">It is recommended that the issuer account does NOT have outgoing trust lines! Please use an account as issuer account that you don't access/use regulary.</mat-checkbox>
           <mat-checkbox [(ngModel)]="checkBoxFiveXrp" [ngClass]="(checkBoxFiveXrp ? 'xumm-green': 'xumm-red')">You accept paying 5 XRP for this service, helping to issue your own Token.</mat-checkbox>
-          <mat-checkbox [(ngModel)]="checkBoxSufficientFunds" [ngClass]="(checkBoxSufficientFunds ? 'xumm-green': 'xumm-red')">The issuing and recipient accounts have enough funds. (at least 5 XRP available balance, excluding account reserves!)</mat-checkbox>
+          <mat-checkbox [(ngModel)]="checkBoxSufficientFunds" [ngClass]="(checkBoxSufficientFunds ? 'xumm-green': 'xumm-red')">The issuing and recipient accounts have enough funds. (At least 5 XRP available balance)</mat-checkbox>
           <mat-checkbox [(ngModel)]="checkBoxNetwork" [ngClass]="(checkBoxNetwork ? 'xumm-green': 'xumm-red')">Your XUMM app is connected to the MAIN or TEST network, depending on where you want to issue your Token.</mat-checkbox>
           <mat-checkbox [(ngModel)]="checkBoxNoLiability" [ngClass]="(checkBoxNoLiability ? 'xumm-green': 'xumm-red')">We take no liability if you are not able to issue your own Token. Only proceed if you know what your are doing!</mat-checkbox>
           <mat-checkbox [(ngModel)]="checkBoxDisclaimer" [ngClass]="(checkBoxDisclaimer ? 'xumm-green': 'xumm-red')">We offer "basic" Token/TrustLine management. If you are going to issue your Token for commercial use, we recommend to NOT use this tool. We are not liable for any regulatory implications, depending on the jurisdiction you live in.</mat-checkbox>
@@ -57,10 +57,88 @@
 
     <mat-step completed="false" editable="false">
       <mat-card fxLayout="column" fxLayoutGap="0.5em">
+          <ng-template matStepLabel>Issuer Account</ng-template>
+          <div fxLayout="column" fxLayoutGap="0.5em" *ngIf="issuer_account_info">
+            <label class="description">What is the account you want to create the Token with?</label>
+            <label *ngIf="issuer_account_info && (issuer_account_info.Account || issuer_account_info.account)">Currently selected:</label>
+            <label *ngIf="issuer_account_info && issuer_account_info.Account">{{issuer_account_info.Account}}</label>
+            <label *ngIf="issuer_account_info && issuer_account_info.account">{{issuer_account_info.account}}</label>
+
+            <div fxLayoutAlign="start center" style="padding-top: 0.5em;">
+              <button mat-raised-button color="primary" (click)="signInWithIssuerAccount()" [disabled]="loadingData">{{issuer_account_info && (issuer_account_info.Account || issuer_account_info.account) ? 'Change Account' : 'Sign In' }}</button>
+            </div>
+          </div>
+
+          <div style="padding-top: 0.5em;">
+            <mat-card *ngIf="issuer_account_info && issuer_account_info.error && issuer_account_info.error == 'actNotFound' && !loadingData" class="mat-card-red">
+              <label>Account not activated on {{isTestMode ? 'Testnet' : 'Mainnet'}}.</label>
+            </mat-card>
+
+            <mat-card *ngIf="issuer_account_info && issuer_account_info.Balance && getAvailableBalanceIssuer() <= 5 && !loadingData" class="mat-card-red" fxLayout="column">
+              <label>This account does not have enough balance to create a Token. At least 5 XRP should be available!</label>
+              <label>Current available Balance: {{getAvailableBalanceIssuer()}} XRP.</label>
+            </mat-card>
+          </div>
+
+          <div *ngIf="!issuer_account_info || loadingData" fxLayoutAlign="start center">
+            <label>Loading...</label>
+            <mat-progress-spinner color="primary" mode="indeterminate" diameter=25></mat-progress-spinner>
+          </div>
+
+          <div style="padding-top: 0.5em;" fxLayoutGap="0.5em">
+              <button mat-raised-button color="primary" (click)="moveNext()" [disabled]="!issuer_account_info || !issuer_account_info.Account || loadingData || getAvailableBalanceIssuer() <= 5">Next</button>
+              <button mat-raised-button class="xumm-grey-background" (click)="moveBack()" [disabled]="!issuer_account_info || loadingData">Back</button>
+          </div>
+      </mat-card>
+    </mat-step>
+
+    <mat-step completed="false" editable="false">
+      <mat-card fxLayout="column" fxLayoutGap="0.5em">
+          <ng-template matStepLabel>Recipient Account</ng-template>
+          <div fxLayout="column" fxLayoutGap="0.5em">
+            <label class="description">What is the account which should receive your Token?</label>
+            <label *ngIf="recipient_account_info && (recipient_account_info.Account || recipient_account_info.account)">Currently selected:</label>
+            <label *ngIf="recipient_account_info && recipient_account_info.Account">{{recipient_account_info.Account}}</label>
+            <label *ngIf="recipient_account_info && recipient_account_info.account">{{recipient_account_info.account}}</label>
+
+            <div fxLayoutAlign="start center" style="padding-top: 0.5em;">
+              <button mat-raised-button color="primary" (click)="signInWithRecipientAccount()" [disabled]="loadingData">{{recipient_account_info && (recipient_account_info.Account || recipient_account_info.account) ? 'Change Account' : 'Sign In' }}</button>
+            </div>
+          </div>
+
+          <div style="padding-top: 0.5em;">
+            <mat-card *ngIf="recipient_account_info && recipient_account_info.error && recipient_account_info.error == 'actNotFound' && !loadingData" class="mat-card-red">
+              <label>Account not activated on {{isTestMode ? 'Testnet' : 'Mainnet'}}.</label>
+            </mat-card>
+
+            <mat-card *ngIf="recipient_account_info && recipient_account_info.Balance && getAvailableBalanceRecipient() <= 5 && !loadingData" class="mat-card-red" fxLayout="column">
+              <label>This account does not have enough balance to create a TrustLine to your Issuer Account. At least 5 XRP should be available for the account reserve!</label>
+              <label>Current available Balance: {{getAvailableBalanceRecipient()}} XRP.</label>
+            </mat-card>
+
+            <mat-card *ngIf="recipient_account_info && recipient_account_info.Account == issuer_account_info.Account && !loadingData" class="mat-card-red">
+              <label>Issuer and Recipient account can not be the same. Please choose a different Account as Recipient of your Token!</label>
+            </mat-card>
+          </div>
+
+          <div *ngIf="loadingData" fxLayoutAlign="start center">
+            <label>Loading...</label>
+            <mat-progress-spinner color="primary" mode="indeterminate" diameter=25></mat-progress-spinner>
+          </div>
+
+          <div style="padding-top: 0.5em;" fxLayoutGap="0.5em">
+              <button mat-raised-button color="primary" (click)="moveNext()" [disabled]="!recipient_account_info || !recipient_account_info.Account || loadingData || getAvailableBalanceRecipient() <= 5 || recipient_account_info.Account == issuer_account_info.Account">Next</button>
+              <button mat-raised-button class="xumm-grey-background" (click)="moveBack()" [disabled]="!recipient_account_info || loadingData">Back</button>
+          </div>
+      </mat-card>
+    </mat-step>
+
+    <mat-step completed="false" editable="false">
+      <mat-card fxLayout="column" fxLayoutGap="0.5em">
           <ng-template matStepLabel>Information about your Token</ng-template>
           <label>We need to define some details about the Token you want to create.</label>
           <form fxLayout="column" fxLayoutGap="0.5em">
-            <label class="loading">What is the currency code you want to use for your Token? As Example: 'ABC' or 'NixerCoin'</label>
+            <label class="description">What is the currency code you want to use for your Token? As Example: 'ABC' or 'NixerCoin'</label>
             <mat-form-field style="padding-top: 0.5em;">
               <input matInput name="Currency Code" placeholder="Currency Code" [(ngModel)]="currencyCode" (ngModelChange)="checkChangesCurrencyCode()">
               <mat-hint *ngIf="currencyCode && !validCurrencyCode && currencyCode != 'XRP' && currencyCode.length < 3">Not a valid Currency Code. Please choose between 3 and 20 characters (like 'USD' or 'SOLO')</mat-hint>
@@ -82,52 +160,37 @@
           
           <div fxLayoutGap="0.5em">
               <button mat-raised-button color="primary" (click)="moveNext()" [disabled]="!validCurrencyCode || !validLimit">Next</button>
-              <button mat-raised-button (click)="moveBack()">Back</button>
+              <button mat-raised-button class="xumm-grey-background"  (click)="moveBack()">Back</button>
           </div>
       </mat-card>
     </mat-step>
 
     <mat-step completed="false" editable="false">
       <mat-card fxLayout="column" fxLayoutGap="0.5em">
-        <ng-template matStepLabel>Issuer account</ng-template>
-        <label class="loading">What is the XRP Ledger account which will be issuing your tokens?</label>
-        <label>You need to pay or sign in with the account you want to create your Token from. (the 'Issuer' account)</label>
-        <div *ngIf="!loadingIssuerAccount" fxLayout="column" fxLayoutGap="0.5em">
-          <div  style="padding-top: 0.5em;" *ngIf="!getIssuer() || !validIssuer || paymentNotSuccessfull || paymentNotFound">
-            <button mat-button matTooltip="Pay for your Token via XUMM." matTooltipPosition="above" (click)="payForToken()" style="padding:0px;">
-              <img src="../../assets/xummPay.svg" style="width: 148px; height: 40px;" alt="Pay via XUMM">
+        <ng-template matStepLabel>Payment</ng-template>
+        <label class="description">Please make a 5 XRP payment to continue.</label>
+        <div fxLayout="column" fxLayoutGap="0.5em">
+          <div  style="padding-top: 0.5em;" *ngIf="!paymentSuccessfull && !paymentFound">
+            <button mat-raised-button color="primary" [disabled]="loadingData" (click)="payForToken()">
+              Pay 5 XRP
             </button>
-            &nbsp;<label class="warning">Make a 5 XRP payment if you haven't paid within the last 24h.</label>
-          </div>
-          <div *ngIf="!getIssuer() || !validIssuer || paymentNotSuccessfull || paymentNotFound">
-            <button mat-button matTooltip="SignIn via XUMM." matTooltipPosition="above" (click)="loginForToken()" style="padding:0px;">
-              <img src="../../assets/xummSignIn.svg" style="width: 230px; height: 40px;" alt="SignIn via XUMM">
-            </button>
-            &nbsp;<label class="loading">Sign in with the account you have paid within the last 24h.</label>
           </div>
           
-          <mat-hint *ngIf="paymentNotSuccessfull" style="padding-top: 0.5em;">You payment was not successfull on the XRP Ledger {{isTestMode ? 'TEST' : 'MAIN'}} net.</mat-hint>
-          <mat-hint *ngIf="paymentNotSuccessfull">Please try again or use "Sign In with XUMM" if you think the payment was successfull.</mat-hint>
-          <mat-hint *ngIf="paymentNotFound" style="padding-top: 0.5em;">No valid payment found for account {{getIssuer()}} withing the last 24h.</mat-hint>
-          <mat-hint *ngIf="paymentNotFound">Please make a 5 XRP payment or login with a different account.</mat-hint>
-
-          <div fxLayout="column" fxLayoutGap="0.5em" style="padding-top: 1em;" *ngIf="getIssuer() && validIssuer && !paymentNotSuccessfull && !paymentNotFound && !loadingIssuerAccount">
-            <label>The account you want to issue a Token with is: </label>
-            <div fxLayout="row" fxLayoutGap="0.5em" fxLayoutAlign="start center">
-              <label class="warning">{{getIssuer()}}</label>
-              <button mat-icon-button (click)="clearIssuerAccount()" aria-label="Clear Issuer Account">
-                <mat-icon>cancel</mat-icon>
-              </button>
-            </div>
+          <div fxLayout="column">
+            <mat-card *ngIf="!loadingData && !paymentFound && paymentStarted && !paymentSuccessfull" class="mat-card-red">Your payment was not successfull on the XRP Ledger {{isTestMode ? 'TEST' : 'MAIN'}} net.</mat-card>
+            <mat-card *ngIf="!loadingData && paymentStarted && !paymentFound && paymentSuccessfull" class="mat-card-green">Payment successfull! You can now issue your token!</mat-card>
+            <mat-card *ngIf="!loadingData && !paymentStarted && paymentFound && !paymentSuccessfull" class="mat-card-green">Payment found! You can now issue your token!</mat-card>
           </div>
         </div>
-        <div *ngIf="loadingIssuerAccount" fxLayout="row" fxLayoutGap="0.3em">
-          <label>Loading account data... </label>
+
+        <div *ngIf="loadingData" fxLayoutAlign="start center">
+          <label>Loading...</label>
           <mat-progress-spinner color="primary" mode="indeterminate" diameter=25></mat-progress-spinner>
         </div>
+
         <div fxLayoutGap="0.5em">
-            <button mat-raised-button color="primary" [disabled]="!getIssuer() || !validIssuer || paymentNotSuccessfull || paymentNotFound || loadingIssuerAccount" (click)="moveNext()">Next</button>
-            <button mat-raised-button (click)="moveBack()">Back</button>
+            <button mat-raised-button color="primary" [disabled]="(!paymentSuccessfull && !paymentFound) || loadingData" (click)="moveNext()">Next</button>
+            <button mat-raised-button class="xumm-grey-background" (click)="moveBack()" [disabled]="loadingData">Back</button>
         </div>
       </mat-card>
     </mat-step>
@@ -138,7 +201,7 @@
         <div *ngIf="needDefaultRipple" fxLayout="column" fxLayoutGap="0.5em">
           <label>We need to set the DefaultRipple flag to your issuer account.</label>
           <label>This allows you and others to send your Token through the XRP Ledger. If we do not set the flag, people won't be able to send your Token.</label>
-          <div>
+          <div *ngIf="!loadingData">
             <button mat-raised-button color="primary" (click)="sendDefaultRipple()">
               Set DefaultRipple via XUMM
             </button>
@@ -146,41 +209,51 @@
           </div>
         </div>
         <div *ngIf="!needDefaultRipple" fxLayout="row" fxLayoutGap="0.5em" fxLayoutAlign="start center">
-          <i class="material-icons" style="color: green; font-size: 3em;">
+          <i class="material-icons xumm-green" style="font-size: 3em;">
               check_circle_outline
           </i>
           <label>The DefaultRipple flag is set at the issuer account! We are good to go!</label>
         </div>
+
+        <div *ngIf="loadingData" fxLayoutAlign="start center">
+          <label>Loading...</label>
+          <mat-progress-spinner color="primary" mode="indeterminate" diameter=25></mat-progress-spinner>
+        </div>
+
         <div fxLayoutGap="0.5em">
           <button mat-raised-button color="primary" [disabled]="needDefaultRipple" (click)="moveNext()">Next</button>
-          <button mat-raised-button (click)="moveBack()">Back</button>
+          <button mat-raised-button class="xumm-grey-background"  (click)="moveBack()">Back</button>
         </div>
       </mat-card>
     </mat-step>
 
     <mat-step completed="false" editable="false">
       <mat-card fxLayout="column" fxLayoutGap="0.5em">
-        <ng-template matStepLabel>Set TrustLine from recipient</ng-template>
-        <div *ngIf="!recipientTrustlineSet && !recipientAddress" fxLayout="column" fxLayoutGap="0.5em">
+        <ng-template matStepLabel>Set TrustLine for your Token</ng-template>
+        <div fxLayout="column" fxLayoutGap="0.5em">
           <label>We have to set a TrustLine from the Token recipient to the issuing account: {{getIssuer()}}</label>
-          <label class="warning">So please sign the next XUMM request with the account which should receive the Token!</label>
-          <label class="loading">You have to switch the signing account from the <b>issuer</b> to the <b>recipient</b> in the XUMM app!</label>
           <div>
-            <button mat-raised-button color="primary" (click)="setTrustline()">
+            <button mat-raised-button color="primary" (click)="setTrustline()" [disabled]="recipientTrustlineSet || loadingData">
               Set Trustline from Recipient to Issuer
             </button>
             <span style="flex: 1 1 auto;"></span>
           </div>
         </div>
-        <div *ngIf="recipientTrustlineSet && recipientAddress" fxLayout="row" fxLayoutGap="0.5em" fxLayoutAlign="start center">
-          <i class="material-icons" style="color: green; font-size: 3em;">
+
+        <div *ngIf="loadingData" fxLayoutAlign="start center">
+          <label>Loading...</label>
+          <mat-progress-spinner color="primary" mode="indeterminate" diameter=25></mat-progress-spinner>
+        </div>
+
+        <div *ngIf="recipientTrustlineSet" fxLayout="row" fxLayoutGap="0.5em" fxLayoutAlign="start center">
+          <i class="material-icons xumm-green" style="font-size: 3em;">
               check_circle_outline
           </i>
-        <label>The TrustLine has been set. Lets move to the next step!</label>
+          <label>The TrustLine has been set. Lets move to the next step!</label>
         </div>
         <div fxLayoutGap="0.5em" style="padding-top: 0.5em;">
-          <button mat-raised-button color="primary" (click)="moveNext()" [disabled]="!recipientTrustlineSet && !recipientAddress">Next</button>
-          <button mat-raised-button (click)="moveBack()">Back</button>
+          <button mat-raised-button color="primary" (click)="moveNext()" [disabled]="!recipientTrustlineSet || loadingData">Next</button>
+          <button mat-raised-button class="xumm-grey-background" [disabled]="loadingData" (click)="moveBack()">Back</button>
         </div>
       </mat-card>
     </mat-step>
@@ -190,30 +263,34 @@
         <ng-template matStepLabel>Issuing your Token</ng-template>
         <div *ngIf="!weHaveIssued" fxLayout="column" fxLayoutGap="0.5em">
           <label>Okay, lets issue your token now!</label>
-          <label class="warning">We are going to issue: <b>{{this.limit}} {{this.currencyCode}}</b></label>
-          <label>to: <b>{{this.recipientAddress}}</b></label>
+          <label class="xumm-orange">We are going to issue: <b>{{this.limit}} {{this.currencyCode}}</b></label>
+          <label>to: <b>{{recipient_account_info && recipient_account_info.Account}}</b></label>
           <label></label>
-          <label class="loading">You have to switch the signing account from the <b>recipient</b> to the <b>issuing</b> in the XUMM app!</label>
           <label>Please keep in mind this is just an inital issuing. You can issue more of your Token at any time through this website with "Issue more if your created Token".</label>
-          <label> (The recipient needs to have a TrustLine to your issueing account with a proper limit!)</label>
           <label></label>
           <mat-checkbox [(ngModel)]="checkBoxIssuingText" [ngClass]="(checkBoxIssuingText ? 'xumm-green': 'xumm-red')">I have read and understand the above text. Let me issue now!</mat-checkbox>
           <div>
-            <button mat-raised-button color="primary" (click)="issueToken()" [disabled]="!checkBoxIssuingText">
+            <button mat-raised-button color="primary" (click)="issueToken()" [disabled]="!checkBoxIssuingText || loadingData">
               Issue your Token
             </button>
             <span style="flex: 1 1 auto;"></span>
           </div>
         </div>
+
+        <div *ngIf="loadingData" fxLayoutAlign="start center">
+          <label>Loading...</label>
+          <mat-progress-spinner color="primary" mode="indeterminate" diameter=25></mat-progress-spinner>
+        </div>
+
         <div *ngIf="weHaveIssued" fxLayout="row" fxLayoutGap="0.5em" fxLayoutAlign="start center">
-          <i class="material-icons" style="color: green; font-size: 3em;">
+          <i class="material-icons xumm-green" style="font-size: 3em;">
               check_circle_outline
           </i>
           <label>Congratulations! You have created your own token on the XRP Ledger!</label>
         </div>
         <div fxLayoutGap="0.5em" style="padding-top: 0.5em;">
-          <button mat-raised-button color="primary" (click)="moveNext()" [disabled]="!weHaveIssued">Next</button>
-          <button mat-raised-button (click)="moveBack()">Back</button>
+          <button mat-raised-button color="primary" (click)="moveNext()" [disabled]="!weHaveIssued || loadingData">Next</button>
+          <button mat-raised-button class="xumm-grey-background" [disabled]="loadingData" (click)="moveBack()">Back</button>
         </div>
       </mat-card>
     </mat-step>
@@ -233,34 +310,40 @@
           <label>No one has the secret keys to this account because the address is not derived from a known secret key.</label>
           <label class="loading">Additionally we will disallow XRP being sent to your issuer account and disable all other signing methods. This removes all access to this account.</label>
           <mat-checkbox [(ngModel)]="checkBoxBlackhole5" [ngClass]="(checkBoxBlackhole5 ? 'xumm-green': 'xumm-red')">I have read and understand the above text. Let me remove all access to the account: {{getIssuer()}}!</mat-checkbox>
+          <div *ngIf="getAvailableBalanceIssuer() > 5">
+            <button mat-raised-button color="primary" (click)="sendRemainingXRP()" [disabled]="!checkBoxBlackhole5 || loadingData">
+              Send remainig XRP to Recipient
+            </button>
+            <span style="flex: 1 1 auto;"></span>
+          </div>
           <div>
-            <button mat-raised-button color="primary" (click)="disallowIncomingXrp()" [disabled]="!checkBoxBlackhole5 || blackholeDisallowXrp">
+            <button mat-raised-button color="primary" (click)="disallowIncomingXrp()" [disabled]="getAvailableBalanceIssuer() > 5 || !checkBoxBlackhole5 || blackholeDisallowXrp || loadingData">
               Disallow incoming XRP
             </button>
             <span style="flex: 1 1 auto;"></span>
           </div>
           <div>
-            <button mat-raised-button color="primary" (click)="setBlackholeAddress()" [disabled]="!checkBoxBlackhole5 || !blackholeDisallowXrp || blackholeRegularKeySet">
+            <button mat-raised-button color="primary" (click)="setBlackholeAddress()" [disabled]="!checkBoxBlackhole5 || !blackholeDisallowXrp || blackholeRegularKeySet || loadingData">
               Set black hole address as RegularKey
             </button>
             <span style="flex: 1 1 auto;"></span>
           </div>
           <div>
-            <button mat-raised-button color="primary" (click)="disableMasterKeyForIssuer()" [disabled]="!checkBoxBlackhole5 || !blackholeDisallowXrp || !blackholeRegularKeySet || blackholeMasterDisabled">
+            <button mat-raised-button color="primary" (click)="disableMasterKeyForIssuer()" [disabled]="!checkBoxBlackhole5 || !blackholeDisallowXrp || !blackholeRegularKeySet || blackholeMasterDisabled || loadingData">
               Disable MaterKey of Issuer account
             </button>
             <span style="flex: 1 1 auto;"></span>
           </div>
         </mat-card>
         <div *ngIf="blackholeRegularKeySet && blackholeMasterDisabled" fxLayout="row" fxLayoutGap="0.5em" fxLayoutAlign="start center">
-          <i class="material-icons" style="color: green; font-size: 3em;">
+          <i class="material-icons xumm-green" style="font-size: 3em;">
               check_circle_outline
           </i>
           <label>You have successfully lost all access to the issuer account {{getIssuer()}}</label>
         </div>
         <div fxLayoutGap="0.5em" style="padding-top: 0.5em;">
-          <button mat-raised-button color="primary" (click)="moveNext()" [disabled]="checkBoxBlackhole5 && !blackholeRegularKeySet && !blackholeMasterDisabled">{{blackholeRegularKeySet && blackholeMasterDisabled ? 'Next' : 'Skip'}}</button>
-          <button mat-raised-button (click)="moveBack()">Back</button>
+          <button mat-raised-button color="primary" (click)="moveNext()" [disabled]="(checkBoxBlackhole5 && !blackholeRegularKeySet && !blackholeMasterDisabled) || loadingData">{{blackholeRegularKeySet && blackholeMasterDisabled ? 'Next' : 'Skip'}}</button>
+          <button mat-raised-button class="xumm-grey-background" [disabled]="loadingData" (click)="moveBack()">Back</button>
         </div>
       </mat-card>
     </mat-step>
@@ -275,8 +358,7 @@
         <label>Then you can send your Token from your recipient account to other accounts which have setup a TrustLine.</label>
         <label *ngIf="blackholeRegularKeySet && blackholeMasterDisabled">Or your can issue more tokens with your issuer account.</label>
         <div>
-          <button mat-raised-button color="primary" (click)="reset()">Create another Token</button>
-          <button mat-raised-button (click)="moveBack()">Back</button>
+          <button mat-raised-button class="xumm-grey-background" (click)="close()">Close</button>
         </div>
       </mat-card>
     </mat-step>
