@@ -74,6 +74,10 @@ body .snackbar-failed {
     font-weight: bold;
 }
 
+.mat-checkbox-layout .mat-checkbox-label {
+    line-height: 20px !important;
+}
+
 @media (max-width:599px) {
     
     .mat-expansion-panel-header {

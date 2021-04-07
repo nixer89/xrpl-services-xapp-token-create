@@ -13,6 +13,7 @@ import { MatSnackBar } from '@angular/material/snack-bar';
 import { webSocket, WebSocketSubject} from 'rxjs/webSocket';
 import { XummTypes } from 'xumm-sdk';
 import { TypeWriter } from './utils/TypeWriter';
+import * as clipboard from 'copy-to-clipboard';
 
 @Component({
   selector: 'createToken',
@@ -32,13 +33,13 @@ export class CreateToken implements OnInit, OnDestroy {
     private xrplWebSocket: XRPLWebsocket,
     private googleAnalytics: GoogleAnalyticsService) { }
 
-  checkBoxTwoAccounts:boolean = true;
-  checkBoxIssuerInfo:boolean = true;
-  checkBoxSufficientFunds:boolean = true;
-  checkBoxFiveXrp:boolean = true;
-  checkBoxNetwork:boolean = true;
-  checkBoxNoLiability:boolean = true;
-  checkBoxDisclaimer:boolean = true;
+  checkBoxTwoAccounts:boolean = false;
+  checkBoxIssuerInfo:boolean = false;
+  checkBoxSufficientFunds:boolean = false;
+  checkBoxFiveXrp:boolean = false;
+  checkBoxNetwork:boolean = false;
+  checkBoxNoLiability:boolean = false;
+  checkBoxDisclaimer:boolean = false;
 
   checkBoxBlackhole1:boolean = false;
   checkBoxBlackhole2:boolean = false;
@@ -101,7 +102,7 @@ export class CreateToken implements OnInit, OnDestroy {
 
   async ngOnInit(): Promise<void> {
     this.ottReceived = this.ottChanged.subscribe(async ottData => {
-      this.infoLabel = "ott received: " + JSON.stringify(ottData);
+      //this.infoLabel = "ott received: " + JSON.stringify(ottData);
       //console.log("ottReceived: " + JSON.stringify(ottData));
 
       if(ottData) {
@@ -132,7 +133,7 @@ export class CreateToken implements OnInit, OnDestroy {
 
     this.themeReceived = this.themeChanged.subscribe(async appStyle => {
 
-      this.infoLabel2 = JSON.stringify(appStyle);
+      //this.infoLabel2 = JSON.stringify(appStyle);
 
       this.themeClass = appStyle.theme;
       this.backgroundColor = appStyle.color;
@@ -177,12 +178,12 @@ export class CreateToken implements OnInit, OnDestroy {
         //this.infoLabel = (JSON.stringify(xummResponse));
         if(!xummResponse || !xummResponse.uuid) {
           this.snackBar.open("Error contacting XUMM backend", null, {panelClass: 'snackbar-failed', duration: 3000, horizontalPosition: 'center', verticalPosition: 'top'});
-          return;
+          return null;
         }        
     } catch (err) {
         //console.log(JSON.stringify(err));
         this.snackBar.open("Could not contact XUMM backend", null, {panelClass: 'snackbar-failed', duration: 3000, horizontalPosition: 'center', verticalPosition: 'top'});
-        return;
+        return null;
     }
 
     if (typeof window.ReactNativeWebView !== 'undefined') {
@@ -238,13 +239,14 @@ export class CreateToken implements OnInit, OnDestroy {
 
     let genericBackendRequest:GenericBackendPostRequest = {
       options: {
-        xrplAccount: this.issuer_account_info.Account
+        xrplAccount: this.issuerAccount
       },
       payload: {
         options: {
           forceAccount: true
         },
         txjson: {
+          Account: this.issuerAccount,
           TransactionType: "Payment",
           Memos : [{Memo: {MemoType: Buffer.from("[https://xumm.community]-Memo", 'utf8').toString('hex').toUpperCase(), MemoData: Buffer.from("Payment for creating Token via xApp: '"+this.currencyCode.trim()+"'", 'utf8').toString('hex').toUpperCase()}}]
         },
@@ -254,20 +256,24 @@ export class CreateToken implements OnInit, OnDestroy {
       }
     }
 
-    let message:any = await this.waitForTransactionSigning(genericBackendRequest);
+    try {
+      let message:any = await this.waitForTransactionSigning(genericBackendRequest);
+    
+      this.paymentStarted = true;
 
-    this.paymentStarted = true;
+      let txInfo = await this.xummApi.checkTimedPayment(message.payload_uuidv4);
+        //console.log('The generic dialog was closed: ' + JSON.stringify(info));
 
-    let txInfo = await this.xummApi.checkTimedPayment(message.payload_uuidv4);
-      //console.log('The generic dialog was closed: ' + JSON.stringify(info));
-
-    if(txInfo && txInfo.success && txInfo.account && txInfo.testnet == this.isTestMode) {
-      if(isValidXRPAddress(txInfo.account))
-        this.paymentSuccessfull = true;
-      else
+      if(txInfo && txInfo.success && txInfo.account && txInfo.testnet == this.isTestMode) {
+        if(isValidXRPAddress(txInfo.account))
+          this.paymentSuccessfull = true;
+        else
+          this.paymentSuccessfull = false;
+      } else {
         this.paymentSuccessfull = false;
-    } else {
-      this.paymentSuccessfull = false;
+      }
+    } catch(err) {
+
     }
 
     this.loadingData = false;
@@ -295,26 +301,30 @@ export class CreateToken implements OnInit, OnDestroy {
       }
     }
 
-    let message:any = await this.waitForTransactionSigning(backendPayload);
+    try {
+      let message:any = await this.waitForTransactionSigning(backendPayload);
 
-    this.infoLabel = "label 1 received: " + JSON.stringify(message);
+      //this.infoLabel = "label 1 received: " + JSON.stringify(message);
 
-    let checkPayment:TransactionValidation = await this.xummApi.signInToValidateTimedPayment(message.payload_uuidv4);
-    this.infoLabel2 = "signInToValidateTimedPayment: " + JSON.stringify(checkPayment);
-    //console.log("login to validate payment: " + JSON.stringify(checkPayment));
-    if(checkPayment && checkPayment.success && checkPayment.testnet == this.isTestMode) {
-      this.issuerAccount = checkPayment.account;
-      this.validIssuer = true;
-      this.paymentFound = true;
-      //this.googleAnalytics.analyticsEventEmitter('login_for_token', 'easy_token', 'easy_token_component');
-    } else {
-      this.issuerAccount = checkPayment.account;
-      this.validIssuer = true;
-      this.paymentFound = false;
+      let checkPayment:TransactionValidation = await this.xummApi.signInToValidateTimedPayment(message.payload_uuidv4);
+      //this.infoLabel2 = "signInToValidateTimedPayment: " + JSON.stringify(checkPayment);
+      //console.log("login to validate payment: " + JSON.stringify(checkPayment));
+      if(checkPayment && checkPayment.success && checkPayment.testnet == this.isTestMode) {
+        this.issuerAccount = checkPayment.account;
+        this.validIssuer = true;
+        this.paymentFound = true;
+        //this.googleAnalytics.analyticsEventEmitter('login_for_token', 'easy_token', 'easy_token_component');
+      } else {
+        this.issuerAccount = checkPayment.account;
+        this.validIssuer = true;
+        this.paymentFound = false;
+      }
+
+
+      await this.loadAccountDataIssuer(this.issuerAccount);
+    } catch(err) {
+
     }
-
-
-    await this.loadAccountDataIssuer(this.issuerAccount);
 
     this.loadingData = false;
   }
@@ -337,6 +347,8 @@ export class CreateToken implements OnInit, OnDestroy {
       if(message_acc_info && message_acc_info.status && message_acc_info.type && message_acc_info.type === 'response') {
         if(message_acc_info.status === 'success' && message_acc_info.result && message_acc_info.result.account_data) {
           this.issuer_account_info = message_acc_info.result.account_data;
+
+          this.infoLabel = JSON.stringify(this.issuer_account_info);
 
           this.needDefaultRipple = !flagUtil.isDefaultRippleEnabled(this.issuer_account_info.Flags)
           this.blackholeDisallowXrp = flagUtil.isDisallowXRPEnabled(this.issuer_account_info.Flags);
@@ -377,6 +389,10 @@ export class CreateToken implements OnInit, OnDestroy {
     }
   }
 
+  isAllowedToBlackhole(): boolean {
+    return this.issuer_account_info && (!this.issuer_account_info.OwnerCount || this.issuer_account_info.OwnerCount == 0);
+  }
+
   async signInWithRecipientAccount() {
     this.loadingData = true;
     //setting up xumm payload and waiting for websocket
@@ -399,15 +415,17 @@ export class CreateToken implements OnInit, OnDestroy {
       }
     }
 
-    let message:any = await this.waitForTransactionSigning(backendPayload);
+    try {
+      let message:any = await this.waitForTransactionSigning(backendPayload);
 
-    let transactionResult = await this.xummApi.checkSignIn(message.payload_uuidv4);
+      let transactionResult = await this.xummApi.checkSignIn(message.payload_uuidv4);
 
-    if(transactionResult && transactionResult.account && isValidXRPAddress(transactionResult.account)) {
-      await this.loadAccountDataRecipient(transactionResult.account);
-    } else {
-      this.recipient_account_info = null;
-    }
+      if(transactionResult && transactionResult.account && isValidXRPAddress(transactionResult.account)) {
+        await this.loadAccountDataRecipient(transactionResult.account);
+      } else {
+        this.recipient_account_info = null;
+      }
+    } catch(err) {}
 
     this.loadingData = false;
   }
@@ -454,6 +472,7 @@ export class CreateToken implements OnInit, OnDestroy {
           forceAccount: true
         },
         txjson: {
+          Account: this.issuerAccount,
           TransactionType: "AccountSet",
           SetFlag: this.ACCOUNT_FLAG_DEFAULT_RIPPLE
         },
@@ -463,20 +482,22 @@ export class CreateToken implements OnInit, OnDestroy {
       }
     }
 
-    let message:any = await this.waitForTransactionSigning(genericBackendRequest);
+    try {
+      let message:any = await this.waitForTransactionSigning(genericBackendRequest);
 
-    let txInfo = await this.xummApi.validateTransaction(message.payload_uuidv4);
-    
-    if(txInfo && txInfo.success && txInfo.testnet == this.isTestMode) {
-      if(this.issuerAccount == txInfo.account)
-        await this.loadAccountDataIssuer(this.issuerAccount);
-      else { //signed with wrong account
-        this.snackBar.open("You signed with the wrong account. Please sign with Issuer Account!", null, {panelClass: 'snackbar-failed', duration: 5000, horizontalPosition: 'center', verticalPosition: 'top'});
+      let txInfo = await this.xummApi.validateTransaction(message.payload_uuidv4);
+      
+      if(txInfo && txInfo.success && txInfo.testnet == this.isTestMode) {
+        if(this.issuerAccount == txInfo.account)
+          await this.loadAccountDataIssuer(this.issuerAccount);
+        else { //signed with wrong account
+          this.snackBar.open("You signed with the wrong account. Please sign with Issuer Account!", null, {panelClass: 'snackbar-failed', duration: 5000, horizontalPosition: 'center', verticalPosition: 'top'});
+        }
+      } else {
+        //tx not successfull
+        this.snackBar.open("Transaction not successfull!", null, {panelClass: 'snackbar-failed', duration: 5000, horizontalPosition: 'center', verticalPosition: 'top'});
       }
-    } else {
-      //tx not successfull
-      this.snackBar.open("Transaction not successfull!", null, {panelClass: 'snackbar-failed', duration: 5000, horizontalPosition: 'center', verticalPosition: 'top'});
-    }
+    } catch(err) {}
 
     this.loadingData = false;
   }
@@ -508,6 +529,7 @@ export class CreateToken implements OnInit, OnDestroy {
           forceAccount: true
         },
         txjson: {
+          Account: this.recipient_account_info.Account,
           TransactionType: "TrustSet",
           Flags: 131072, //no ripple
           LimitAmount: {
@@ -522,23 +544,25 @@ export class CreateToken implements OnInit, OnDestroy {
       }
     }
 
-    let message:any = await this.waitForTransactionSigning(genericBackendRequest);
+    try {
+      let message:any = await this.waitForTransactionSigning(genericBackendRequest);
 
-    this.infoLabel = "setTrustline " + JSON.stringify(this.recipient_account_info);
+      //this.infoLabel = "setTrustline " + JSON.stringify(this.recipient_account_info);
 
-    let info = await this.xummApi.validateTransaction(message.payload_uuidv4)
+      let info = await this.xummApi.validateTransaction(message.payload_uuidv4)
 
-    if(info && info.success && info.account && info.testnet == this.isTestMode) {
-      if(this.recipient_account_info.Account == info.account) {
-        this.recipientTrustlineSet = true;
+      if(info && info.success && info.account && info.testnet == this.isTestMode) {
+        if(this.recipient_account_info.Account == info.account) {
+          this.recipientTrustlineSet = true;
+        } else {
+          this.recipientTrustlineSet = false;
+          this.snackBar.open("You signed with the wrong account. Please sign with Recipient Account!", null, {panelClass: 'snackbar-failed', duration: 5000, horizontalPosition: 'center', verticalPosition: 'top'});
+        }
       } else {
         this.recipientTrustlineSet = false;
-        this.snackBar.open("You signed with the wrong account. Please sign with Recipient Account!", null, {panelClass: 'snackbar-failed', duration: 5000, horizontalPosition: 'center', verticalPosition: 'top'});
+        this.snackBar.open("Transaction not successfull!", null, {panelClass: 'snackbar-failed', duration: 5000, horizontalPosition: 'center', verticalPosition: 'top'});
       }
-    } else {
-      this.recipientTrustlineSet = false;
-      this.snackBar.open("Transaction not successfull!", null, {panelClass: 'snackbar-failed', duration: 5000, horizontalPosition: 'center', verticalPosition: 'top'});
-    }
+    } catch(err) {}
 
     this.loadingData = false;
   }
@@ -548,13 +572,14 @@ export class CreateToken implements OnInit, OnDestroy {
     let genericBackendRequest:GenericBackendPostRequest = {
       options: {
         issuing: true,
-        xrplAccount: this.issuerAccount
+        xrplAccount: this.getIssuer()
       },
       payload: {
         options: {
           forceAccount: true
         },
         txjson: {
+          Account: this.getIssuer(),
           TransactionType: "Payment",
           Destination: this.recipient_account_info.Account,
           Amount: {
@@ -569,64 +594,72 @@ export class CreateToken implements OnInit, OnDestroy {
       }
     }
 
-    let message:any = await this.waitForTransactionSigning(genericBackendRequest);
+    try {
+      let message:any = await this.waitForTransactionSigning(genericBackendRequest);
 
-    let txInfo = await this.xummApi.validateTransaction(message.payload_uuidv4);
+      let txInfo = await this.xummApi.validateTransaction(message.payload_uuidv4);
 
-    if(txInfo && txInfo.success && txInfo.account && txInfo.testnet == this.isTestMode) {
-      if(this.issuerAccount == txInfo.account) {
-        this.weHaveIssued = true;
+      if(txInfo && txInfo.success && txInfo.account && txInfo.testnet == this.isTestMode) {
+        if(this.issuerAccount == txInfo.account) {
+          this.weHaveIssued = true;
+        } else {
+          this.weHaveIssued = false;
+          this.snackBar.open("You signed with the wrong account. Please sign with Issuer Account!", null, {panelClass: 'snackbar-failed', duration: 5000, horizontalPosition: 'center', verticalPosition: 'top'});
+        }
+        //this.googleAnalytics.analyticsEventEmitter('token_created', 'easy_token', 'easy_token_component');
       } else {
         this.weHaveIssued = false;
-        this.snackBar.open("You signed with the wrong account. Please sign with Issuer Account!", null, {panelClass: 'snackbar-failed', duration: 5000, horizontalPosition: 'center', verticalPosition: 'top'});
+        this.snackBar.open("Transaction not successfull!", null, {panelClass: 'snackbar-failed', duration: 5000, horizontalPosition: 'center', verticalPosition: 'top'});
       }
-      //this.googleAnalytics.analyticsEventEmitter('token_created', 'easy_token', 'easy_token_component');
-    } else {
-      this.weHaveIssued = false;
-      this.snackBar.open("Transaction not successfull!", null, {panelClass: 'snackbar-failed', duration: 5000, horizontalPosition: 'center', verticalPosition: 'top'});
-    }
+    } catch(err) {}
 
     this.loadingData = false;
   }
 
   async sendRemainingXRP() {
     this.loadingData = true;
+    //reload issuer balance
+    await this.loadAccountDataIssuer(this.issuerAccount)
+
     let genericBackendRequest:GenericBackendPostRequest = {
       options: {
         issuing: true,
-        xrplAccount: this.issuerAccount
+        xrplAccount: this.getIssuer()
       },
       payload: {
         options: {
           forceAccount: true
         },
         txjson: {
+          Account: this.getIssuer(),
           TransactionType: "Payment",
           Destination: this.recipient_account_info.Account,
-          Amount: this.getAvailableBalanceIssuer()*1000000
+          Amount: this.getAvailableBalanceIssuer()*1000000+""
         },
         custom_meta: {
-          instruction: "- Sending " + this.getAvailableBalanceIssuer()*1000000 + " XRP to: " + this.recipient_account_info.Account + "to empty issuer account\n\n- Please sign with the ISSUER account!"
+          instruction: "- Sending " + this.getAvailableBalanceIssuer() + " XRP to: " + this.recipient_account_info.Account + " to empty issuer account\n\n- Please sign with the ISSUER account!"
         }
       }
     }
 
-    let message:any = await this.waitForTransactionSigning(genericBackendRequest);
+    try {
+      let message:any = await this.waitForTransactionSigning(genericBackendRequest);
 
-    let txInfo = await this.xummApi.validateTransaction(message.payload_uuidv4);
+      let txInfo = await this.xummApi.validateTransaction(message.payload_uuidv4);
 
-    if(txInfo && txInfo.success && txInfo.account && txInfo.testnet == this.isTestMode) {
-      if(this.issuerAccount == txInfo.account) {
-        await this.loadAccountDataIssuer(this.issuerAccount);
+      if(txInfo && txInfo.success && txInfo.account && txInfo.testnet == this.isTestMode) {
+        if(this.issuerAccount == txInfo.account) {
+          await this.loadAccountDataIssuer(this.issuerAccount);
+        } else {
+          await this.loadAccountDataIssuer(this.issuerAccount);
+          this.snackBar.open("You signed with the wrong account. Please sign with Issuer Account!", null, {panelClass: 'snackbar-failed', duration: 5000, horizontalPosition: 'center', verticalPosition: 'top'});
+        }
+        //this.googleAnalytics.analyticsEventEmitter('token_created', 'easy_token', 'easy_token_component');
       } else {
         await this.loadAccountDataIssuer(this.issuerAccount);
-        this.snackBar.open("You signed with the wrong account. Please sign with Issuer Account!", null, {panelClass: 'snackbar-failed', duration: 5000, horizontalPosition: 'center', verticalPosition: 'top'});
+        this.snackBar.open("Transaction not successfull!", null, {panelClass: 'snackbar-failed', duration: 5000, horizontalPosition: 'center', verticalPosition: 'top'});
       }
-      //this.googleAnalytics.analyticsEventEmitter('token_created', 'easy_token', 'easy_token_component');
-    } else {
-      await this.loadAccountDataIssuer(this.issuerAccount);
-      this.snackBar.open("Transaction not successfull!", null, {panelClass: 'snackbar-failed', duration: 5000, horizontalPosition: 'center', verticalPosition: 'top'});
-    }
+    } catch(err) {}
 
     this.loadingData = false;
   }
@@ -643,6 +676,7 @@ export class CreateToken implements OnInit, OnDestroy {
           forceAccount: true
         },
         txjson: {
+          Account: this.getIssuer(),
           TransactionType: "AccountSet",
           SetFlag: this.ACCOUNT_FLAG_DISABLE_INCOMING_XRP
         },
@@ -652,15 +686,17 @@ export class CreateToken implements OnInit, OnDestroy {
       }
     }
 
-    let message:any = await this.waitForTransactionSigning(genericBackendRequest);
+    try {
+      let message:any = await this.waitForTransactionSigning(genericBackendRequest);
 
-    let txInfo = await this.xummApi.validateTransaction(message.payload_uuidv4);
+      let txInfo = await this.xummApi.validateTransaction(message.payload_uuidv4);
 
-    if(txInfo && txInfo.success && txInfo.account && txInfo.testnet == this.isTestMode) {
-      this.blackholeDisallowXrp = true;
-    } else {
-      this.blackholeDisallowXrp = false;
-    }
+      if(txInfo && txInfo.success && txInfo.account && txInfo.testnet == this.isTestMode) {
+        this.blackholeDisallowXrp = true;
+      } else {
+        this.blackholeDisallowXrp = false;
+      }
+    } catch(err) {}
 
     this.loadingData = false;
   }
@@ -677,6 +713,7 @@ export class CreateToken implements OnInit, OnDestroy {
           forceAccount: true
         },   
         txjson: {
+          Account: this.getIssuer(),
           TransactionType: "SetRegularKey",
           RegularKey: "rrrrrrrrrrrrrrrrrrrrBZbvji"
         },
@@ -686,15 +723,17 @@ export class CreateToken implements OnInit, OnDestroy {
       }
     }
 
-    let message:any = await this.waitForTransactionSigning(genericBackendRequest);
+    try {
+      let message:any = await this.waitForTransactionSigning(genericBackendRequest);
 
-    let txInfo = await this.xummApi.validateTransaction(message.payload_uuidv4);
+      let txInfo = await this.xummApi.validateTransaction(message.payload_uuidv4);
 
-    if(txInfo && txInfo.success && txInfo.account && txInfo.testnet == this.isTestMode) {
-      this.blackholeRegularKeySet = true;
-    } else {
-      this.blackholeRegularKeySet = false;
-    }
+      if(txInfo && txInfo.success && txInfo.account && txInfo.testnet == this.isTestMode) {
+        this.blackholeRegularKeySet = true;
+      } else {
+        this.blackholeRegularKeySet = false;
+      }
+    } catch(err) {}
 
     this.loadingData = false;
   }
@@ -712,6 +751,7 @@ export class CreateToken implements OnInit, OnDestroy {
           forceAccount: true
         },
         txjson: {
+          Account: this.getIssuer(),
           TransactionType: "AccountSet",
           SetFlag: this.ACCOUNT_FLAG_DISABLE_MASTER_KEY
         },
@@ -721,18 +761,28 @@ export class CreateToken implements OnInit, OnDestroy {
       }
     }
 
-    let message:any = await this.waitForTransactionSigning(genericBackendRequest);
+    try {
+      let message:any = await this.waitForTransactionSigning(genericBackendRequest);
 
-    let txInfo = await this.xummApi.validateTransaction(message.payload_uuidv4);
+      let txInfo = await this.xummApi.validateTransaction(message.payload_uuidv4);
 
-    if(txInfo && txInfo.success && txInfo.account && txInfo.testnet == this.isTestMode) {
-      this.blackholeMasterDisabled = true;
-      //this.googleAnalytics.analyticsEventEmitter('account_black_hole_succeed', 'easy_token', 'easy_token_component');
-    } else {
-      this.blackholeMasterDisabled = false;
-    }
+      if(txInfo && txInfo.success && txInfo.account && txInfo.testnet == this.isTestMode) {
+        this.blackholeMasterDisabled = true;
+        //this.googleAnalytics.analyticsEventEmitter('account_black_hole_succeed', 'easy_token', 'easy_token_component');
+      } else {
+        this.blackholeMasterDisabled = false;
+      }
+    } catch(err) {}
 
     this.loadingData = false;
+  }
+
+  copyLink() {
+    if(this.getIssuer() && this.currencyCode && this.limit) {
+      clipboard("https://xumm.community?issuer="+this.getIssuer()+"&currency="+this.currencyCode+"&limit="+this.limit);
+      this.snackBar.dismiss();
+      this.snackBar.open("TrustLine link copied to clipboard!", null, {panelClass: 'snackbar-success', duration: 3000, horizontalPosition: 'center', verticalPosition: 'bottom'});
+    }
   }
 
   close() {
@@ -765,49 +815,6 @@ export class CreateToken implements OnInit, OnDestroy {
       }
     })
 
-    switch(this.stepper.selectedIndex) {
-      case 0: break;
-      case 1: {
-        this.checkBoxFiveXrp = this.checkBoxNetwork = this.checkBoxSufficientFunds = this.checkBoxTwoAccounts = this.checkBoxNoLiability = this.checkBoxIssuerInfo = false;
-        break;
-      }
-      case 2: {
-        this.isTestMode = false;
-        break;
-      }
-      case 3: {
-        this.currencyCode = null;
-        this.limit = null;
-        this.validCurrencyCode = false;
-        this.validLimit = false;
-        break;
-      }
-      case 4: {
-        this.issuerAccount = this.issuer_account_info = null;
-        this.validIssuer = false;
-        this.paymentFound = this.paymentSuccessfull = false;
-        this.needDefaultRipple = true;
-        break;
-      }
-      case 5: {
-        break;
-      }
-      case 6: {
-        this.recipientTrustlineSet = false;
-        break;
-      }
-      case 7: {
-        this.weHaveIssued = false;
-        break;
-      }
-      case 8: {
-        this.checkBoxBlackhole1 = this.checkBoxBlackhole2 = this.checkBoxBlackhole3 = this.checkBoxBlackhole4 = this.checkBoxBlackhole5 = false;
-        this.blackholeRegularKeySet = this.blackholeMasterDisabled = this.blackholeDisallowXrp = false;
-        break;
-      }
-      case 9: break;
-    }
-
     this.stepper.previous();
   }
 
@@ -835,5 +842,9 @@ export class CreateToken implements OnInit, OnDestroy {
     this.checkBoxBlackhole1 = this.checkBoxBlackhole2 = this.checkBoxBlackhole3 = this.checkBoxBlackhole4 =this.checkBoxBlackhole5 = false;
     this.blackholeMasterDisabled = this.blackholeRegularKeySet = this.blackholeDisallowXrp =  false;
     this.stepper.reset();
+  }
+
+  scrollToTop() {
+    window.scrollTo(0, 0);
   }
 }
