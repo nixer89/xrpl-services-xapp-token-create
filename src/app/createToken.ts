@@ -314,7 +314,7 @@ export class CreateToken implements OnInit, OnDestroy {
         this.validIssuer = true;
         this.paymentFound = true;
         //this.googleAnalytics.analyticsEventEmitter('login_for_token', 'easy_token', 'easy_token_component');
-      } else {
+      } else if(checkPayment && checkPayment.account) {
         this.issuerAccount = checkPayment.account;
         this.validIssuer = true;
         this.paymentFound = false;
@@ -422,9 +422,8 @@ export class CreateToken implements OnInit, OnDestroy {
 
       if(transactionResult && transactionResult.account && isValidXRPAddress(transactionResult.account)) {
         await this.loadAccountDataRecipient(transactionResult.account);
-      } else {
-        this.recipient_account_info = null;
       }
+      
     } catch(err) {}
 
     this.loadingData = false;

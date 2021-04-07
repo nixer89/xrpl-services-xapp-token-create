@@ -3,7 +3,7 @@
   <mat-toolbar fxLayout="row" color="primary" style="background-color: rgb(48, 82, 255);"class="mat-elevation-z4">  
     <mat-toolbar-row>
       <div fxLayout="row" fxLayoutGap="0.5em" fxLayoutAlign="start center">
-        <img src="../assets/topbar_logo.png" width="50px" height="50px" alt="Xumm Logo">
+        <img src="../assets/topbar_logo.png" width="50px" height="50px" alt="Xumm Community Logo">
         <label style="font-weight: bold;">{{title}}</label>  
       </div>
     </mat-toolbar-row>
@@ -21,7 +21,7 @@
             <label>From 'beer-token' over 'toilet-paper-token' (TPT), everything is possible!</label>
             <label>Issuing more tokens to any other account will be free of charge.</label>
             <label>Also a new TrustLine for your Token will be created from the recipient account. This adds 5 XRP to the recipients account reserve.</label>
-            <mat-card class="mat-card-red" fxLayout="column">
+            <mat-card class="mat-card-orange" fxLayout="column">
               <label>We will charge you 5 XRP for using this service to create your Token and your initial issuing to one other account.</label>
               <label>So please make sure you have at least 5 XRP available balance in the issuer and recipients account!</label>
               <label>Once 5 XRP is paid, you have 24h to create your token. After 24h you would need to pay again.</label>
@@ -305,9 +305,9 @@
       <mat-card fxLayout="column" fxLayoutGap="0.5em">
         <ng-template matStepLabel>Black hole Issuer (optional!)</ng-template>       
         <div *ngIf="!isAllowedToBlackhole()">
-          <mat-card class="mat-card-orange">
-            <label>You are not allowed to black hole your issuer account. That is because you have existing XRP Ledger Objects attached to your account like Escrows, additional TrustLines, Checks, ...</label>
-            <label>For the safety of your funds we only allow you to black hole the account if you don't have any additional objects other than the current TrustLine for your Token.</label>
+          <mat-card class="mat-card-orange" fxLayout="column" fxLayoutGap="0.3em;">
+            <label>You are not allowed to black hole your issuer account. That is because you have existing XRP Ledger Objects attached to your account like Escrows, TrustLines, Checks, ... </label>
+            <label>For the safety of your funds we only allow you to black hole the account if you don't have any additional objects attached to your account..</label>
           </mat-card>
         </div>
         <div *ngif="isAllowedToBlackhole()">
@@ -372,14 +372,17 @@
     <mat-step completed="false" editable="false">
       <mat-card fxLayout="column" fxLayoutGap="0.5em">
         <ng-template matStepLabel>Finished!</ng-template>
-        <label>You can now send your Token through the XRP Ledger to accounts which also have added a TrustLine with your issuer account: <b>{{getIssuer()}}</b></label>
-        <label>You can share the following link with people interested to set a TrustLine to your account:</label>
-        <div fxLayout="row" fxLayoutGap="0.3em;">
-          <label class="xumm-orange">https://xumm.community?issuer={{getIssuer()}}&currency={{currencyCode}}&limit={{limit}}</label>
-          <button mat-icon-button aria-label="Copy Link" (click)="copyLink()">
-            <mat-icon style="font-size: 16px; width: fit-content; height: fit-content;">content_copy</mat-icon>
-          </button>
-        </div>
+        <mat-card class="mat-card-green"><label>Hoooorrrraayy! You have successfully created your token in the XRP Ledger! Now spread the word, send it around and put it to good use!</label></mat-card>
+        <label>You can send your Token through the XRP Ledger to accounts which have a TrustLine with your issuer account: <b>{{getIssuer()}}</b></label>
+        <mat-card class="mat-card-orange" fxLayout="column" fxLayoutGap="0.3em;">
+          <label>You can share the following link with people interested to set a TrustLine to your account:</label><br>
+          <div fxLayout="row" fxLayoutGap="0.3em;">
+            <label class="break-words" (click)="copyLink()">https://xumm.community?issuer={{getIssuer()}}&currency={{currencyCode}}&limit={{limit}}</label>
+            <button mat-icon-button aria-label="Copy Link" (click)="copyLink()">
+              <mat-icon style="font-size: 16px; width: fit-content; height: fit-content;">content_copy</mat-icon>
+            </button>
+          </div>
+        </mat-card>
         <div fxLayoutAlign="center center">
           <button mat-raised-button class="xumm-grey-background" (click)="close()">Close</button>
         </div>
