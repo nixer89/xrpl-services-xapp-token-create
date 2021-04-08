@@ -1,5 +1,4 @@
 <div [class]="themeClass">
-
   <mat-toolbar fxLayout="row" color="primary" style="background-color: rgb(48, 82, 255);"class="mat-elevation-z4">  
     <mat-toolbar-row>
       <div fxLayout="row" fxLayoutGap="0.5em" fxLayoutAlign="start center">
@@ -9,13 +8,14 @@
     </mat-toolbar-row>
   </mat-toolbar>
 
-  <div *ngIf="errorLabel" fxLayout="column">
-    <label class="xumm-red break-words" (click)="copyError()">{{errorLabel}}</label>
-    <button mat-icon-button aria-label="Copy Error" (click)="copyError()">
-      <mat-icon style="font-size: 16px; width: fit-content; height: fit-content;">content_copy</mat-icon>
+  <mat-card class="mat-card-red" *ngIf="errorLabel" fxLayout="column" fxLayoutGap="0.5em;">
+    <label>Sorry that this error happened! Please copy of the following error and contact @XummCommunity on twitter or send a mail to: XummCommunity@gmail.com . Thanks for your help!</label><br>
+    <label class="break-words" (click)="copyError()">{{errorLabel}}</label>
+    <button mat-button class="xumm-grey-background" aria-label="Copy Error" (click)="copyError()">
+      Copy&nbsp;<mat-icon style="font-size: 16px; width: fit-content; height: fit-content;">content_copy</mat-icon>
     </button>
-  </div>
-  
+  </mat-card>
+
   <!--label *ngIf="infoLabel" style="color: red">{{infoLabel}}</label><br><br>
   <label *ngIf="infoLabel2" style="color: red">{{infoLabel2}}</label>
   <label *ngIf="infoLabel3" style="color: red">{{infoLabel3}}</label-->
@@ -52,7 +52,7 @@
           <mat-checkbox [(ngModel)]="checkBoxIssuerInfo" [ngClass]="(checkBoxIssuerInfo ? 'xumm-green': 'xumm-red')">It is recommended that the issuer account does NOT have outgoing trust lines! Please use an account as issuer account that you don't access/use regulary.</mat-checkbox>
           <mat-checkbox [(ngModel)]="checkBoxFiveXrp" [ngClass]="(checkBoxFiveXrp ? 'xumm-green': 'xumm-red')">You accept paying 5 XRP for this service.</mat-checkbox>
           <mat-checkbox [(ngModel)]="checkBoxSufficientFunds" [ngClass]="(checkBoxSufficientFunds ? 'xumm-green': 'xumm-red')">The issuing and recipient accounts have enough funds. (At least 5 XRP available balance)</mat-checkbox>
-          <mat-checkbox [(ngModel)]="checkBoxNetwork" [ngClass]="(checkBoxNetwork ? 'xumm-green': 'xumm-red')">Your XUMM app is connected to the {{isTestMode ? 'MAIN' : 'TEST'}} network. That is where I want to issue my token.</mat-checkbox>
+          <mat-checkbox [(ngModel)]="checkBoxNetwork" [ngClass]="(checkBoxNetwork ? 'xumm-green': 'xumm-red')">Your XUMM app is connected to the {{isTestMode ? 'TEST' : 'MAIN'}} network. Yes, that is where I want to issue my token.</mat-checkbox>
           <mat-checkbox [(ngModel)]="checkBoxNoLiability" [ngClass]="(checkBoxNoLiability ? 'xumm-green': 'xumm-red')">We take no liability if you are not able to issue your own Token. The payment is not refundable. Only proceed if you know what you are are doing!</mat-checkbox>
           <mat-checkbox [(ngModel)]="checkBoxDisclaimer" [ngClass]="(checkBoxDisclaimer ? 'xumm-green': 'xumm-red')">If you are going to issue your Token for commercial use, we recommend to NOT use this tool. We are not liable for any regulatory implications, depending on the jurisdiction you live in.</mat-checkbox>
 
