@@ -10,7 +10,6 @@ import { CreateToken } from './createToken';
 import { AppService } from './services/app.service';
 import { XummService } from './services/xumm.service';
 import { XRPLWebsocket } from './services/xrplWebSocket';
-import { GoogleAnalyticsService } from './services/google-analytics.service';
 
 //Angular Material
 import { MatCardModule } from '@angular/material/card';
@@ -61,7 +60,6 @@ import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
     AppService,
     XummService,
     XRPLWebsocket,
-    GoogleAnalyticsService,
     MatMomentDateModule
   ],
   bootstrap: [AppComponent]
