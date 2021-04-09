@@ -148,6 +148,15 @@ export class CreateToken implements OnInit, OnDestroy {
     });
     //this.infoLabel = JSON.stringify(this.device.getDeviceInfo());
 
+    //add event listeners
+    if (typeof window.addEventListener === 'function') {
+      window.addEventListener("message", event => this.handleOverlayEvent(event));
+    }
+    
+    if (typeof document.addEventListener === 'function') {
+      document.addEventListener("message", event => this.handleOverlayEvent(event));
+    }
+
     this.tw = new TypeWriter(["Xumm Community xApp", "created by nixerFFM", "Xumm Community xApp"], t => {
       this.title = t;
     })
@@ -161,6 +170,15 @@ export class CreateToken implements OnInit, OnDestroy {
 
     if(this.themeReceived)
       this.themeReceived.unsubscribe();
+  }
+
+  async handleOverlayEvent(event:any) {
+    let eventData = JSON.parse(event.data);
+
+    if(eventData && eventData.method == "payloadResolved" && eventData.reason == "DECLINED") {
+        //user closed without signing
+        this.loadingData = false;
+    }
   }
 
   getIssuer(): string {
@@ -202,20 +220,7 @@ export class CreateToken implements OnInit, OnDestroy {
     //this.infoLabel = "Showed sign request to user";
 
     //remove old websocket
-    let interval = null;
     try {
-
-      let lastChange = Date.now();
-
-      interval = setInterval(() => {
-        if(Date.now() > (lastChange + 30000)) { 
-          //30 seconds no update -> we have to have timed out!
-          this.loadingData = false;
-          if(interval)
-            clearInterval(interval);
-        }
-      }, 1000);
-
       if(this.websocket && !this.websocket.closed) {
         this.websocket.unsubscribe();
         this.websocket.complete();
@@ -228,12 +233,7 @@ export class CreateToken implements OnInit, OnDestroy {
             //console.log("message received: " + JSON.stringify(message));
             //this.infoLabel = "message received: " + JSON.stringify(message);
 
-            lastChange = Date.now();
-
             if((message.payload_uuidv4 && message.payload_uuidv4 === xummResponse.uuid) || message.expired || message.expires_in_seconds <= 0) {
-
-              if(interval)
-                clearInterval(interval);
 
               if(this.websocket) {
                 this.websocket.unsubscribe();
@@ -245,9 +245,6 @@ export class CreateToken implements OnInit, OnDestroy {
         });
       });
     } catch(err) {
-      if(interval)
-        clearInterval(interval);
-
       this.loadingData = false;
       //this.infoLabel = JSON.stringify(err);
     }
