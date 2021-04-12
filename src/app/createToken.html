@@ -280,7 +280,7 @@
             <label>We are going to issue: <b>{{this.limit}} {{this.currencyCode}}</b></label>
             <label>to: <b>{{recipient_account_info && recipient_account_info.Account}}</b></label>
           </mat-card>
-          <label>Please keep in mind that this is just an inital issuing. You can issue more of your Token at any time through the website https://xumm.community/tokens -> "Issue more if your created Token".</label>
+          <label>Please keep in mind that this is just an initial issuing. You can issue more of your Token at any time through the website https://xumm.community/tokens -> "Issue more if your created Token".</label>
           <mat-checkbox [(ngModel)]="checkBoxIssuingText" [ngClass]="(checkBoxIssuingText ? 'xumm-green': 'xumm-red')" [disabled]="loadingData || weHaveIssued">I have read and understand the above text. Let me issue now!</mat-checkbox>
           <div fxLayoutAlign="start center">
             <button mat-raised-button color="primary" (click)="issueToken()" [disabled]="!checkBoxIssuingText || loadingData || weHaveIssued">
