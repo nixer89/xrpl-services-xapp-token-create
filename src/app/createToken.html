@@ -149,10 +149,10 @@
             <label>What is the currency code you want to use for your Token? As Example: 'ABC' or 'NixerCoin'</label>
             <mat-form-field style="padding-top: 0.5em;">
               <input matInput name="Currency Code" placeholder="Currency Code" [(ngModel)]="currencyCode" (ngModelChange)="checkChangesCurrencyCode()">
-              <mat-hint *ngIf="currencyCode && !validCurrencyCode && currencyCode != 'XRP' && currencyCode.length < 3">Not a valid Currency Code. Please choose between 3 and 20 characters (like 'USD' or 'SOLO')</mat-hint>
-              <mat-hint *ngIf="currencyCode && !validCurrencyCode && currencyCode === 'XRP'">You cannot issue any XRP!</mat-hint>
+              <mat-hint *ngIf="currencyCode && !validCurrencyCode && currencyCode.toUpperCase() != 'XRP' && currencyCode.length < 3">Not a valid Currency Code. Please choose between 3 and 20 characters (like 'USD' or 'SOLO')</mat-hint>
+              <mat-hint *ngIf="currencyCode && !validCurrencyCode && currencyCode.toUpperCase() === 'XRP'">You cannot issue any XRP!</mat-hint>
               <mat-hint *ngIf="currencyCode && !validCurrencyCode && currencyCode.length > 20">The currency code can have a maximum of 20 characters.</mat-hint>
-              <mat-hint *ngIf="currencyCode && !validCurrencyCode && currencyCode.length >= 3 && currencyCode.length <=20">The currency code contains invalid characters.</mat-hint>
+              <mat-hint *ngIf="currencyCode && !validCurrencyCode && currencyCode.length >= 3 && currencyCode.length <=20 && currencyCode.toUpperCase() != 'XRP'">The currency code contains invalid characters.</mat-hint>
             </mat-form-field>
             <div *ngIf="currencyCode && validCurrencyCode && currencyCode.length > 3 && currencyCode.length < 21" fxLayout="column" fxLayoutGap="0.3em" style="margin-bottom: 1.5em;">
               <mat-card class="mat-card-orange" fxLayout="column">
@@ -339,13 +339,13 @@
         </div>
         <div *ngIf="isAllowedToBlackhole()" fxLayout="column" fxLayoutGap="0.5em">
           <mat-card class="mat-card-red">
-            <label>This is an OPTIONAL step. You can "black hole" the issuer account. That means you would not be able to issue more tokens (fixed supply) AND you would loose access to the issuer account!</label>
+            <label>This is an OPTIONAL step. You can "black hole" the issuer account. That means you would not be able to issue more tokens (fixed supply) AND you would lose access to the issuer account!</label>
           </mat-card>
           <label>Please skip this step if you don't know what that means!</label>
           <div *ngIf="(!blackholeRegularKeySet || !blackholeMasterDisabled)">
             <mat-checkbox [(ngModel)]="checkBoxBlackhole1" [ngClass]="(checkBoxBlackhole1 ? 'xumm-green': 'xumm-red')">I understand the implications and want to black hole the issuer account.</mat-checkbox>
             <mat-checkbox [(ngModel)]="checkBoxBlackhole2" [ngClass]="(checkBoxBlackhole2 ? 'xumm-green': 'xumm-red')">I understand that I can not create more tokens. The supply of my Token will be fixed.</mat-checkbox>
-            <mat-checkbox [(ngModel)]="checkBoxBlackhole3" [ngClass]="(checkBoxBlackhole3 ? 'xumm-green': 'xumm-red')">I understand that I will LOOSE ALL ACCESS to the issuer account: {{getIssuer()}}. I WON'T BE ABLE TO RECOVER THE ACCESS!</mat-checkbox>
+            <mat-checkbox [(ngModel)]="checkBoxBlackhole3" [ngClass]="(checkBoxBlackhole3 ? 'xumm-green': 'xumm-red')">I understand that I will LOSE ALL ACCESS to the issuer account: {{getIssuer()}}. I WON'T BE ABLE TO RECOVER THE ACCESS!</mat-checkbox>
           </div>
           <mat-card *ngIf="checkBoxBlackhole1 && checkBoxBlackhole2 && checkBoxBlackhole3 && (!blackholeRegularKeySet || !blackholeMasterDisabled)" fxLayout="column" fxLayoutGap="0.5em">
             <label>Okay, lets black hole the issuer account!</label>
@@ -401,7 +401,7 @@
         <mat-card class="mat-card-green"><label>Hoooorrrraayy! You have successfully created your token in the XRP Ledger! Now spread the word, send it around and put it to good use!</label></mat-card>
         <label>You can send your Token through the XRP Ledger to accounts which have a TrustLine with your issuer account: <b>{{getIssuer()}}</b></label>
         <mat-card class="mat-card-orange" fxLayout="column" fxLayoutGap="0.3em;">
-          <label>You can share the following link with people interested to set a TrustLine to your account:</label><br>
+          <label>You can share the following link with people interested in your Token. The link will setup the trustline they need to have to receive your Token:</label><br>
           <div fxLayout="row" fxLayoutGap="0.3em;">
             <label class="break-words" (click)="copyLink()">https://xumm.community?issuer={{getIssuer()}}&currency={{currencyCode}}&limit={{limit}}</label>
             <button mat-icon-button aria-label="Copy Link" (click)="copyLink()">
