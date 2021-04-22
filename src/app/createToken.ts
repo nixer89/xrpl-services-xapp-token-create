@@ -51,6 +51,8 @@ export class CreateToken implements OnInit, OnDestroy {
   blackholeRegularKeySet:boolean = false;
   blackholeMasterDisabled:boolean = false;
 
+  checkBoxAccountsPreselected:boolean = false;
+
   issuer_account_info:any;
   recipient_account_info:any;
   isTestMode:boolean = false;
