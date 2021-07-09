@@ -660,7 +660,8 @@ export class CreateToken implements OnInit, OnDestroy {
             currency: normalizer.getCurrencyCodeForXRPL(this.currencyCode),
             issuer: this.issuerAccount.trim(),
             value: normalizer.tokenNormalizer(this.limit.toString())
-          }
+          },
+          Flags: 131072
         },
         custom_meta: {
           instruction: "- Issuing " + this.limit + " " + this.currencyCode + " to: " + this.recipient_account_info.Account + "\n\n- Please sign with the ISSUER account!"
