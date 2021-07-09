@@ -62,9 +62,11 @@ export class CreateToken implements OnInit, OnDestroy {
   validIssuer:boolean = false;
 
   currencyCode:string;
-  limit:number;
+  limit:string;
   validCurrencyCode:boolean = false;
+  currencyAlreadyIssued:boolean = false;
   validLimit:boolean = false;
+  isNft:boolean = false;
 
   transactionSuccessfull: Subject<void> = new Subject<void>();
 
@@ -96,6 +98,9 @@ export class CreateToken implements OnInit, OnDestroy {
   infoLabel2:string = null;
 
   errorLabel:string = null;
+
+  memoInput: string;
+  alreadyIssuedCurrencies:string[] = [];
 
   title: string = "Xumm Community xApp";
   tw: TypeWriter
@@ -369,14 +374,44 @@ export class CreateToken implements OnInit, OnDestroy {
           this.needDefaultRipple = !flagUtil.isDefaultRippleEnabled(this.issuer_account_info.Flags)
           this.blackholeDisallowXrp = flagUtil.isDisallowXRPEnabled(this.issuer_account_info.Flags);
           this.blackholeMasterDisabled = flagUtil.isMasterKeyDisabled(this.issuer_account_info.Flags)
+
+          //if account exists, check for already issued currencies
+          let gateway_balances_request:any = {
+            command: "gateway_balances",
+            account: xrplAccount,
+            strict: true,
+            ledger_index: "validated"
+          }
+
+          let gateway_balances:any = await this.xrplWebSocket.getWebsocketMessage("token-create", gateway_balances_request, this.isTestMode);
+
+          if(gateway_balances && gateway_balances.status && gateway_balances.status === 'success' && gateway_balances.type && gateway_balances.type === 'response' && gateway_balances.result && gateway_balances.result.obligations) {
+            let obligations:any = gateway_balances.result.obligations;
+            
+            if(obligations) {
+                for (var currency in obligations) {
+                    if (obligations.hasOwnProperty(currency)) {
+                        this.alreadyIssuedCurrencies.push(currency);
+                    }
+                }
+            } else {
+              this.alreadyIssuedCurrencies = [];
+            }
+          } else {                
+            this.alreadyIssuedCurrencies = [];
+          }
+
         } else {
           this.issuer_account_info = message_acc_info;
+          this.alreadyIssuedCurrencies = [];
         }
       } else {
         this.issuer_account_info = "no account";
+        this.alreadyIssuedCurrencies = [];
       }
     } else {
       this.issuer_account_info = "no account"
+      this.alreadyIssuedCurrencies = [];
     }
   }
 
@@ -521,6 +556,7 @@ export class CreateToken implements OnInit, OnDestroy {
 
   checkChangesCurrencyCode() {
     this.validCurrencyCode = this.currencyCode && /^[a-zA-Z\d?!@#$%^&*<>(){}[\]|]{3,20}$/.test(this.currencyCode) && this.currencyCode.toUpperCase() != "XRP";
+    this.currencyAlreadyIssued = this.validCurrencyCode && this.alreadyIssuedCurrencies.includes(this.currencyCode.trim());
   }
 
   getCurrencyCodeForXRPL(): string {
@@ -528,10 +564,32 @@ export class CreateToken implements OnInit, OnDestroy {
   }
 
   checkChangesLimit() {
-    this.validLimit = this.limit && this.limit > 0 && !(/[^.0-9]|\d*\.\d{16,}/.test(this.limit.toString()));
+    if(this.limit) {
 
-    if(this.validLimit && this.limit.toString().includes('.') && this.limit.toString().substring(0,this.limit.toString().indexOf('.')).length > 40)
-      this.validLimit = false;
+      if(!this.limit.includes("e")) {
+        this.validLimit = !(/[^.0-9]|\d*\.\d{16,}/.test(this.limit));
+      } else {
+        //console.log("checking scientific notation");
+        try {
+          let first:number = Number(this.limit.substring(0, this.limit.indexOf('e')));
+          let second:number = Number(this.limit.substring(this.limit.indexOf('e')+1));
+
+          //console.log("first: " + first);
+          //console.log("second: " + second);
+
+          if(Number.isInteger(first) && Number.isInteger(second)) {
+            this.validLimit = first > 0 && first <= 9999999999999999 && second >= -96 && second <= 80
+          } else {
+            this.validLimit = false;
+          }
+        } catch(err) {
+          this.validLimit = false;
+        }
+      }
+    }
+
+    if(this.validLimit)
+      this.validLimit = this.limit && parseFloat(this.limit) >= 0;
   }
 
   async setTrustline() {
@@ -608,6 +666,10 @@ export class CreateToken implements OnInit, OnDestroy {
           instruction: "- Issuing " + this.limit + " " + this.currencyCode + " to: " + this.recipient_account_info.Account + "\n\n- Please sign with the ISSUER account!"
         }
       }
+    }
+
+    if(this.memoInput && this.memoInput.trim().length > 0 && !genericBackendRequest.payload.txjson.Memos) {
+      genericBackendRequest.payload.txjson.Memos = [{Memo: {MemoType: Buffer.from("Token-Creation", 'utf8').toString('hex').toUpperCase(), MemoData: Buffer.from(this.memoInput.trim(), 'utf8').toString('hex').toUpperCase()}}];
     }
 
     try {

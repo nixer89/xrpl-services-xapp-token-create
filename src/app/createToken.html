@@ -153,7 +153,22 @@
               <mat-hint *ngIf="currencyCode && !validCurrencyCode && currencyCode.toUpperCase() === 'XRP'">You cannot issue any XRP!</mat-hint>
               <mat-hint *ngIf="currencyCode && !validCurrencyCode && currencyCode.length > 20">The currency code can have a maximum of 20 characters.</mat-hint>
               <mat-hint *ngIf="currencyCode && !validCurrencyCode && currencyCode.length >= 3 && currencyCode.length <=20 && currencyCode.toUpperCase() != 'XRP'">The currency code contains invalid characters.</mat-hint>
+              <mat-hint *ngIf="currencyCode && validCurrencyCode && currencyAlreadyIssued">You already created this token. It is not possible to create it again.</mat-hint>
             </mat-form-field>
+
+            <div *ngIf="currencyCode && validCurrencyCode && currencyAlreadyIssued" fxLayout="column" fxLayoutGap="0.3em" style="margin-bottom: 1.5em;">
+              <mat-card class="mat-card-orange" fxLayout="column">
+                <label>Attention! You already created this token. If you want to issue <b>more</b> of your token, please visit:</label>
+                <div fxLayout="row" fxLayoutGap="0.3em;" fxLayoutAlign="start center">
+                  <label class="break-words" (click)="copyTokenLink()">https://xumm.community/tokens</label>
+                  <button mat-icon-button aria-label="Copy Token Link" (click)="copyTokenLink()">
+                    <mat-icon style="font-size: 16px; width: fit-content; height: fit-content;">content_copy</mat-icon>
+                  </button>
+                </div>
+                <label>and find the "Issue more of your created Token" section!</label>
+              </mat-card>
+            </div>
+            
             <div *ngIf="currencyCode && validCurrencyCode && currencyCode.length > 3 && currencyCode.length < 21" fxLayout="column" fxLayoutGap="0.3em" style="margin-bottom: 1.5em;">
               <mat-card class="mat-card-orange" fxLayout="column">
                 <label>Attention! Your currency code will be represented as HEX string on the XRP Ledger but most software does translate this into human readable characters as shown above! </label>
@@ -299,6 +314,12 @@
           <mat-card class="mat-card-orange" fxLayout="column">
             <label>We are going to issue: <b>{{this.limit}} {{this.currencyCode}}</b></label>
             <label>to: <b>{{recipient_account_info && recipient_account_info.Account}}</b></label>
+          </mat-card>
+          <mat-card>
+            <h4>Token Creation Memo (optional):</h4>
+            <mat-form-field style="width: 95%;">
+                <input matInput type="text" [(ngModel)]="memoInput" placeholder="Memo" aria-label="Token Creation Memo">
+            </mat-form-field>
           </mat-card>
           <label>Please keep in mind that this is just an initial issuing. You can issue more of your Token at any time through the website https://xumm.community/tokens -> "Issue more if your created Token".</label>
           <mat-checkbox [(ngModel)]="checkBoxIssuingText" [ngClass]="(checkBoxIssuingText ? 'xumm-green': 'xumm-red')" [disabled]="loadingData || weHaveIssued">I have read and understand the above text. Let me issue now!</mat-checkbox>
