@@ -168,7 +168,7 @@
                 <label>and find the "Issue more of your created Token" section!</label>
               </mat-card>
             </div>
-            
+
             <div *ngIf="currencyCode && validCurrencyCode && currencyCode.length > 3 && currencyCode.length < 21" fxLayout="column" fxLayoutGap="0.3em" style="margin-bottom: 1.5em;">
               <mat-card class="mat-card-orange" fxLayout="column">
                 <label>Attention! Your currency code will be represented as HEX string on the XRP Ledger but most software does translate this into human readable characters as shown above! </label>
@@ -317,6 +317,7 @@
           </mat-card>
           <mat-card>
             <h4>Token Creation Memo (optional):</h4>
+            <label class="xumm-red">(A transaction memo is publicly readable by everyone from the XRP Ledger!)</label>
             <mat-form-field style="width: 95%;">
                 <input matInput type="text" [(ngModel)]="memoInput" placeholder="Memo" aria-label="Token Creation Memo">
             </mat-form-field>
