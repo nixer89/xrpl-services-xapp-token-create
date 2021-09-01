@@ -4,10 +4,10 @@
   "scripts": {
     "ng": "ng",
     "start": "ng serve --port 4202 --open",
-    "build": "ng build --prod",
-    "upload": "ng build --prod & aws s3 --profile myevride rm s3://tokencreate.xapp.xumm.community/ --recursive & aws s3 --profile myevride cp ./dist/xumm-xapp-token-create s3://tokencreate.xapp.xumm.community/ --recursive --include '*' --acl public-read --cache-control public,max-age=604800,no-transform",
+    "build": "ng build --configuration production",
+    "upload": "ng build --configuration production & aws s3 --profile myevride rm s3://tokencreate.xapp.xumm.community/ --recursive & aws s3 --profile myevride cp ./dist/xumm-xapp-token-create s3://tokencreate.xapp.xumm.community/ --recursive --include '*' --acl public-read --cache-control public,max-age=604800,no-transform",
     "invalidate": "aws cloudfront --profile myevride create-invalidation --distribution-id EWZDP7FOQUAIT --paths /*",
-    "upload-test": "ng build --prod & aws s3 --profile myevride rm s3://tokencreate-test.xapp.xumm.community/ --recursive & aws s3 --profile myevride cp ./dist/xumm-xapp-token-create s3://tokencreate-test.xapp.xumm.community/ --recursive --include '*' --acl public-read --cache-control public,max-age=604800,no-transform",
+    "upload-test": "ng build --configuration production & aws s3 --profile myevride rm s3://tokencreate-test.xapp.xumm.community/ --recursive & aws s3 --profile myevride cp ./dist/xumm-xapp-token-create s3://tokencreate-test.xapp.xumm.community/ --recursive --include '*' --acl public-read --cache-control public,max-age=604800,no-transform",
     "invalidate-test": "aws cloudfront --profile myevride create-invalidation --distribution-id E3OQUFRS3B98JK --paths /*",
     "test": "ng test",
     "lint": "ng lint",
@@ -15,18 +15,18 @@
   },
   "private": true,
   "dependencies": {
-    "@angular/animations": "^11.2.14",
+    "@angular/animations": "^12.2.3",
     "@angular/cdk": "^11.2.13",
-    "@angular/common": "^11.2.14",
-    "@angular/compiler": "^11.2.14",
-    "@angular/core": "^11.2.14",
+    "@angular/common": "^12.2.3",
+    "@angular/compiler": "^12.2.3",
+    "@angular/core": "^12.2.3",
     "@angular/flex-layout": "^11.0.0-beta.33",
-    "@angular/forms": "^11.2.14",
+    "@angular/forms": "^12.2.3",
     "@angular/material": "^11.2.13",
     "@angular/material-moment-adapter": "^11.2.13",
-    "@angular/platform-browser": "^11.2.14",
-    "@angular/platform-browser-dynamic": "^11.2.14",
-    "@angular/router": "^11.2.14",
+    "@angular/platform-browser": "^12.2.3",
+    "@angular/platform-browser-dynamic": "^12.2.3",
+    "@angular/router": "^12.2.3",
     "buffer": "^6.0.3",
     "copy-to-clipboard": "^3.3.1",
     "five-bells-condition": "^5.0.1",
@@ -35,12 +35,12 @@
     "tslib": "^2.3.0",
     "xrpl-tagged-address-codec": "^0.2.1",
     "xumm-sdk": "^0.4.6",
-    "zone.js": "~0.11.3"
+    "zone.js": "~0.11.4"
   },
   "devDependencies": {
-    "@angular-devkit/build-angular": "^0.1102.14",
-    "@angular/cli": "^11.2.14",
-    "@angular/compiler-cli": "^11.2.14",
+    "@angular-devkit/build-angular": "^12.2.3",
+    "@angular/cli": "^12.2.3",
+    "@angular/compiler-cli": "^12.2.3",
     "@types/jasmine": "^3.8.1",
     "@types/node": "^14.17.5",
     "codelyzer": "^6.0.2",
@@ -54,6 +54,6 @@
     "protractor": "~7.0.0",
     "ts-node": "^9.1.1",
     "tslint": "~6.1.0",
-    "typescript": "~4.1.6"
+    "typescript": "~4.3.5"
   }
 }
