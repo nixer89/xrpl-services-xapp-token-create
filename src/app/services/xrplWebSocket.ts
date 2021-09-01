@@ -9,6 +9,7 @@ export class XRPLWebsocket {
     testNodes:string[] = ['wss://testnet.xrpl-labs.com', 'wss://s.altnet.rippletest.net'];
     mainFirst:boolean = true;
     testFirst:boolean = true;
+    errorsToSwitch:string[] = ["amendmentBlocked", "failedToForward", "invalid_API_version", "noClosed", "noCurrent", "noNetwork", "tooBusy"]
 
     websocketMap:Map<string, any> = new Map();
 
@@ -19,7 +20,7 @@ export class XRPLWebsocket {
         }
     }
 
-    getWebsocketMessage(componentname:string, command:any, newTestMode:boolean, retry?:boolean): Promise<any> {
+    async getWebsocketMessage(componentname:string, command:any, newTestMode:boolean, retry?:boolean): Promise<any> {
 
         if(this.websocketMap.get(componentname) && this.websocketMap.get(componentname).mode != newTestMode) {
             //console.log("test mode changed")
@@ -43,32 +44,47 @@ export class XRPLWebsocket {
 
         return new Promise((resolve, reject) => {
             this.websocketMap.get(componentname).socket.asObservable().subscribe(async message => {
-                //console.log(JSON.stringify(message));
-                resolve(message);
-            }, async error => {
-                this.websocketMap.get(componentname).socket.complete();
-                this.websocketMap.delete(componentname)
+                console.log(JSON.stringify(message));
                 
-                if(!retry) {
-                    console.log("could not connect websocket! changing node!");
-                    resolve(await this.connectToSecondWS(command));
+                if(message && message.error && this.errorsToSwitch.includes(message.error)) {
+                    resolve(await this.cleanupAndChangeNode(componentname, command, retry));    
                 } else {
-                    resolve({error: true, message: "No node connection possible"});
-                }
+                    resolve(message);
+                }               
+            }, async error => {
+                resolve(await this.cleanupAndChangeNode(componentname, command, retry));
             });
 
-            //console.log("setting up command: " + JSON.stringify(command))
+            console.log("setting up command: " + JSON.stringify(command))
             this.websocketMap.get(componentname).socket.next(command);
         });        
     }
 
-    connectToSecondWS(command): Promise<any> {
+    async cleanupAndChangeNode(componentname: string, command: any, retry: boolean): Promise<any> {
+        this.websocketMap.get(componentname).socket.complete();
+        this.websocketMap.delete(componentname)
+        
+        if(!retry) {
+            console.log("could not connect websocket! changing node!");
+            return this.connectToSecondWS(componentname, command);
+        } else {
+            return {error: true, message: "No node connection possible"};
+        }
+    }
+
+    async connectToSecondWS(componentname:string, command:any): Promise<any> {
         if(this.originalTestModeValue)
             this.testFirst = !this.testFirst;
         else
             this.mainFirst = !this.mainFirst;
 
-        return this.getWebsocketMessage(command, this.originalTestModeValue, true);
+        return this.getWebsocketMessage(componentname, command, this.originalTestModeValue, true);
+    }
+
+    async send(command:any): Promise<any> {
+        console.log("offers command: " + JSON.stringify(command));
+        
+        return this.getWebsocketMessage("liquidity-check", command, false)
     }
 }
 
