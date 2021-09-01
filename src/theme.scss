@@ -1,6 +1,7 @@
+@use '~@angular/material' as mat;
 @import '~@angular/material/theming';
 
-@include mat-core();
+@include mat.core();
 
 $md-xummblue: (
     50 : #e6eaff,
@@ -221,10 +222,10 @@ a:active {
 
 // Our dark theme
 .light-theme {
-  $light-primary: mat-palette($md-xummblue);
-  $light-accent: mat-palette($md-xummorange);
-  $light-warn: mat-palette($md-xummred);  
-  $light-theme: mat-light-theme($light-primary, $light-accent, $light-warn);
+  $light-primary: mat.define-palette($md-xummblue);
+  $light-accent: mat.define-palette($md-xummorange);
+  $light-warn: mat.define-palette($md-xummred);  
+  $light-theme: mat.define-light-theme($light-primary, $light-accent, $light-warn);
 
   .body {
     color: #000000;
@@ -318,15 +319,15 @@ a:active {
     background-color: rgba(96, 104, 133, 0.1) !important;
   }
   
-  @include angular-material-theme($light-theme);
+  @include mat.all-component-themes($light-theme);
 }
 
 // Our dark theme
 .dark-theme {
-  $dark-primary: mat-palette($md-xummblue);
-  $dark-accent: mat-palette($md-xummorange);
-  $dark-warn: mat-palette($md-xummred);  
-  $dark-theme: mat-dark-theme($dark-primary, $dark-accent, $dark-warn);
+  $dark-primary: mat.define-palette($md-xummblue);
+  $dark-accent: mat.define-palette($md-xummorange);
+  $dark-warn: mat.define-palette($md-xummred);  
+  $dark-theme: mat.define-dark-theme($dark-primary, $dark-accent, $dark-warn);
 
   .body {
     color: #FFFFFF;
@@ -392,15 +393,15 @@ a:active {
     color: rgb(48, 82, 255) !important;
   }
   
-  @include angular-material-theme($dark-theme);
+  @include mat.all-component-themes($dark-theme);
 }
 
 // Our monlight
 .moonlight-theme {
-  $moonlight-primary: mat-palette($md-xummblue);
-  $moonlight-accent: mat-palette($md-xummorange);
-  $moonlight-warn: mat-palette($md-xummred);  
-  $moonlight-theme: mat-dark-theme($moonlight-primary, $moonlight-accent, $moonlight-warn);
+  $moonlight-primary: mat.define-palette($md-xummblue);
+  $moonlight-accent: mat.define-palette($md-xummorange);
+  $moonlight-warn: mat.define-palette($md-xummred);  
+  $moonlight-theme: mat.define-dark-theme($moonlight-primary, $moonlight-accent, $moonlight-warn);
 
   .body {
     color: #FFFFFF;
@@ -466,15 +467,15 @@ a:active {
     color: rgb(48, 82, 255) !important;
   }
 
-  @include angular-material-theme($moonlight-theme);
+  @include mat.all-component-themes($moonlight-theme);
 }
 
 // Our royal
 .royal-theme {
-  $royal-primary: mat-palette($md-xummblue);
-  $royal-accent: mat-palette($md-xummorange);
-  $royal-warn: mat-palette($md-xummred);  
-  $royal-theme: mat-dark-theme($royal-primary, $royal-accent, $royal-warn);
+  $royal-primary: mat.define-palette($md-xummblue);
+  $royal-accent: mat.define-palette($md-xummorange);
+  $royal-warn: mat.define-palette($md-xummred);  
+  $royal-theme: mat.define-dark-theme($royal-primary, $royal-accent, $royal-warn);
 
   .body {
     color: #FFFFFF;
@@ -540,5 +541,5 @@ a:active {
     color: rgb(48, 82, 255) !important;
   }
   
-  @include angular-material-theme($royal-theme);
+  @include mat.all-component-themes($royal-theme);
 }
