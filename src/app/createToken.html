@@ -26,10 +26,10 @@
             <ng-template matStepLabel>Description</ng-template>
             <label class="description">This xApp will help you to create your own currency (token) on the XRP Ledger.</label>
             <label>From 'beer-token' over 'toilet-paper-token' (TPT), everything is possible!</label>
-            <label>A new TrustLine for your Token will be created from the recipient account. This adds 5 XRP to the recipients account reserve.</label>
+            <label>A new TrustLine for your Token will be created from the recipient account. This adds {{ownerReserve/1000000}} XRP to the recipients account reserve.</label>
             <mat-card class="mat-card-orange" fxLayout="column">
               <label>Also we will charge you 5 XRP for using this service to create your Token and your initial issuing to one other account.</label>
-              <label>So please make sure you have at least 5 XRP available balance in the issuer and recipient account!</label>
+              <label>So please make sure you have at least 5 XRP available balance in the issuer and {{ownerReserve/1000000}} XRP in the recipient account!</label>
               <label>Once 5 XRP is paid, you have 24h to create your token. After 24h you would need to pay again.</label>
             </mat-card>
 
@@ -119,8 +119,8 @@
               <label>This account is not activated on {{isTestMode ? 'Testnet' : 'Mainnet'}}.</label>
             </mat-card>
 
-            <mat-card *ngIf="recipient_account_info && recipient_account_info.Balance && getAvailableBalanceRecipient() < 5 && !loadingData" class="mat-card-red" fxLayout="column">
-              <label>This account does not have enough balance to create a TrustLine to your Issuer Account. At least 5 XRP should be available for the account reserve!</label>
+            <mat-card *ngIf="recipient_account_info && recipient_account_info.Balance && getAvailableBalanceRecipient() < (ownerReserve/1000000) && !loadingData" class="mat-card-red" fxLayout="column">
+              <label>This account does not have enough balance to create a TrustLine to your Issuer Account. At least {{ownerReserve/1000000}} XRP should be available for the account reserve!</label>
               <label>Current available Balance: {{getAvailableBalanceRecipient()}} XRP.</label>
             </mat-card>
 
@@ -135,7 +135,7 @@
           </div>
 
           <div style="padding-top: 0.5em;" fxLayoutGap="0.5em">
-              <button mat-raised-button color="primary" (click)="moveNext()" [disabled]="!recipient_account_info || !recipient_account_info.Account || loadingData || getAvailableBalanceRecipient() < 5 || recipient_account_info.Account == issuer_account_info.Account">Next</button>
+              <button mat-raised-button color="primary" (click)="moveNext()" [disabled]="!recipient_account_info || !recipient_account_info.Account || loadingData || getAvailableBalanceRecipient() < (ownerReserve/1000000) || recipient_account_info.Account == issuer_account_info.Account">Next</button>
               <button mat-raised-button class="xumm-grey-background" (click)="moveBack()" [disabled]="loadingData">Back</button>
           </div>
       </mat-card>
