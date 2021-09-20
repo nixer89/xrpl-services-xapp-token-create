@@ -201,11 +201,17 @@ export class CreateToken implements OnInit, OnDestroy {
   }
 
   async handleOverlayEvent(event:any) {
-    let eventData = JSON.parse(event.data);
+    try {
+      if(event && event.data) {
+        let eventData = JSON.parse(event.data);
 
-    if(eventData && eventData.method == "payloadResolved" && eventData.reason == "DECLINED") {
-        //user closed without signing
-        this.loadingData = false;
+        if(eventData && eventData.method == "payloadResolved" && eventData.reason == "DECLINED") {
+            //user closed without signing
+            this.loadingData = false;
+        }
+      }
+    } catch(err) {
+      //ignore errors
     }
   }
 
