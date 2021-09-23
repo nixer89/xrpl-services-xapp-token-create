@@ -289,7 +289,8 @@ export class CreateToken implements OnInit, OnDestroy {
 
     let genericBackendRequest:GenericBackendPostRequest = {
       options: {
-        xrplAccount: this.issuerAccount
+        xrplAccount: this.issuerAccount,
+        pushDisabled: true
       },
       payload: {
         txjson: {
@@ -335,7 +336,8 @@ export class CreateToken implements OnInit, OnDestroy {
     let backendPayload:GenericBackendPostRequest = {
       options: {
           web: false,
-          signinToValidate: true
+          signinToValidate: true,
+          pushDisabled: true
       },
       payload: {
           txjson: {
@@ -477,7 +479,8 @@ export class CreateToken implements OnInit, OnDestroy {
     let backendPayload:GenericBackendPostRequest = {
       options: {
           web: false,
-          signinToValidate: true
+          signinToValidate: true,
+          pushDisabled: true
       },
       payload: {
           txjson: {
@@ -542,7 +545,8 @@ export class CreateToken implements OnInit, OnDestroy {
 
     let genericBackendRequest:GenericBackendPostRequest = {
       options: {
-        xrplAccount: this.issuerAccount
+        xrplAccount: this.issuerAccount,
+        pushDisabled: true
       },
       payload: {
         txjson: {
@@ -624,7 +628,8 @@ export class CreateToken implements OnInit, OnDestroy {
 
     let genericBackendRequest:GenericBackendPostRequest = {
       options: {
-        xrplAccount: this.recipient_account_info.Account
+        xrplAccount: this.recipient_account_info.Account,
+        pushDisabled: true
       },
       payload: {
         txjson: {
@@ -676,7 +681,8 @@ export class CreateToken implements OnInit, OnDestroy {
     let genericBackendRequest:GenericBackendPostRequest = {
       options: {
         issuing: true,
-        xrplAccount: this.getIssuer()
+        xrplAccount: this.getIssuer(),
+        pushDisabled: true
       },
       payload: {
         txjson: {
@@ -734,7 +740,8 @@ export class CreateToken implements OnInit, OnDestroy {
     let genericBackendRequest:GenericBackendPostRequest = {
       options: {
         issuing: true,
-        xrplAccount: this.getIssuer()
+        xrplAccount: this.getIssuer(),
+        pushDisabled: true
       },
       payload: {
         txjson: {
@@ -780,7 +787,8 @@ export class CreateToken implements OnInit, OnDestroy {
     let genericBackendRequest:GenericBackendPostRequest = {
       options: {
         issuing: true,
-        xrplAccount: this.getIssuer()
+        xrplAccount: this.getIssuer(),
+        pushDisabled: true
       },
       payload: {
         txjson: {
@@ -819,7 +827,8 @@ export class CreateToken implements OnInit, OnDestroy {
     let genericBackendRequest:GenericBackendPostRequest = {
       options: {
         issuing: true,
-        xrplAccount: this.getIssuer()
+        xrplAccount: this.getIssuer(),
+        pushDisabled: true
       },
       payload: {
         txjson: {
@@ -858,7 +867,8 @@ export class CreateToken implements OnInit, OnDestroy {
     let genericBackendRequest:GenericBackendPostRequest = {
       options: {
         issuing: true,
-        xrplAccount: this.getIssuer()
+        xrplAccount: this.getIssuer(),
+        pushDisabled: true
       },
       payload: {
         txjson: {
