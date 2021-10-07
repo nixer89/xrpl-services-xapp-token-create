@@ -2,7 +2,7 @@ import { Component, Input, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import { XummService } from './services/xumm.service'
 import { XRPLWebsocket } from './services/xrplWebSocket';
 import { Observable, Subject, Subscription } from 'rxjs';
-import { TransactionValidation, GenericBackendPostRequest } from './utils/types';
+import { GenericBackendPostRequest } from './utils/types';
 import * as flagUtil from './utils/flagutils';
 import { MatStepper } from '@angular/material/stepper';
 import * as normalizer from './utils/normalizers';
@@ -53,7 +53,7 @@ export class CreateToken implements OnInit, OnDestroy {
 
   checkBoxAccountsPreselected:boolean = false;
 
-  issuer_account_info:any;
+  issuer_account_info:any = null;
   recipient_account_info:any;
   isTestMode:boolean = false;
 
@@ -67,6 +67,8 @@ export class CreateToken implements OnInit, OnDestroy {
   currencyAlreadyIssued:boolean = false;
   validLimit:boolean = false;
   isNft:boolean = false;
+  kycAccount:string = null;
+  accountHasKYC:boolean = false;
 
   transactionSuccessfull: Subject<void> = new Subject<void>();
 
@@ -99,6 +101,7 @@ export class CreateToken implements OnInit, OnDestroy {
 
   infoLabel:string = null;
   infoLabel2:string = null;
+  infoLabel3:string = null;
 
   errorLabel:string = null;
 
@@ -112,36 +115,42 @@ export class CreateToken implements OnInit, OnDestroy {
 
   async ngOnInit(): Promise<void> {
 
-    this.loadFeeReserves();
+    //await this.loadAccountDataIssuer("r9N4v3cWxfh4x6yUNjxNy3DbWUgbzMBLdk");
 
     this.ottReceived = this.ottChanged.subscribe(async ottData => {
-      //this.infoLabel = "ott received: " + JSON.stringify(ottData);
+      this.infoLabel = "ott received: " + JSON.stringify(ottData);
       //console.log("ottReceived: " + JSON.stringify(ottData));
 
       if(ottData) {
 
-        //this.infoLabel = JSON.stringify(ottData);
+        this.loadingData = true;
+
+        this.infoLabel = JSON.stringify(ottData);
         
         this.isTestMode = ottData.nodetype == 'TESTNET';
+        //this.isTestMode = true;
 
-        //this.infoLabel = "changed mode to testnet: " + this.testMode;
+        this.infoLabel2 = "changed mode to testnet: " + this.isTestMode;
 
         if(ottData && ottData.account && ottData.accountaccess == 'FULL') {
-
-          this.issuer_account_info = "no account";
-          //await this.loadAccountDataIssuer(ottData.account);
-          //this.loadingData = false;
+          this.issuerAccount = ottData.account;
+          await this.loadAccountDataIssuer(this.issuerAccount);
 
           //await this.loadAccountData(ottData.account); //false = ottResponse.node == 'TESTNET' 
         } else {
-          this.issuer_account_info = "no account";
+          //this.issuer_account_info = "no account";
         }
+
+        this.infoLabel = JSON.stringify(this.issuer_account_info);
+
+        this.loadingData = false;
       }
+
+
 
       //this.testMode = true;
       //await this.loadAccountData("rELeasERs3m4inA1UinRLTpXemqyStqzwh");
       //await this.loadAccountData("r9N4v3cWxfh4x6yUNjxNy3DbWUgbzMBLdk");
-      //this.loadingData = false;
     });
 
     this.themeReceived = this.themeChanged.subscribe(async appStyle => {
@@ -170,6 +179,8 @@ export class CreateToken implements OnInit, OnDestroy {
       document.addEventListener("message", event => this.handleOverlayEvent(event));
     }
 
+    await this.loadFeeReserves();
+
     this.tw = new TypeWriter(["Xumm Community xApp", "created by nixerFFM", "Xumm Community xApp"], t => {
       this.title = t;
     })
@@ -196,8 +207,8 @@ export class CreateToken implements OnInit, OnDestroy {
     this.accountReserve = feeSetting?.result?.node["ReserveBase"];
     this.ownerReserve = feeSetting?.result?.node["ReserveIncrement"];
 
-    console.log("resolved accountReserve: " + this.accountReserve);
-    console.log("resolved ownerReserve: " + this.ownerReserve);
+    //console.log("resolved accountReserve: " + this.accountReserve);
+    //console.log("resolved ownerReserve: " + this.ownerReserve);
   }
 
   async handleOverlayEvent(event:any) {
@@ -274,7 +285,7 @@ export class CreateToken implements OnInit, OnDestroy {
                 this.websocket.complete();
               }
               
-              return resolve(message);
+              setTimeout( () => resolve(message), 500);
             }
         });
       });
@@ -285,6 +296,10 @@ export class CreateToken implements OnInit, OnDestroy {
   }
 
   async payForToken() {
+
+    if(!this.isTestMode && (!this.accountHasKYC || !this.kycAccount))
+      return;
+
     this.loadingData = true;
 
     let genericBackendRequest:GenericBackendPostRequest = {
@@ -296,7 +311,10 @@ export class CreateToken implements OnInit, OnDestroy {
         txjson: {
           Account: this.issuerAccount,
           TransactionType: "Payment",
-          Memos : [{Memo: {MemoType: Buffer.from("[https://xumm.community]-Memo", 'utf8').toString('hex').toUpperCase(), MemoData: Buffer.from("Payment for creating Token via xApp: '"+this.currencyCode.trim()+"'", 'utf8').toString('hex').toUpperCase()}}]
+          Memos : [
+                    {Memo: {MemoType: Buffer.from("[https://xumm.community]-Memo", 'utf8').toString('hex').toUpperCase(), MemoData: Buffer.from("Payment for creating Token via xApp: '"+this.currencyCode.trim()+"'\n" , 'utf8').toString('hex').toUpperCase()}},
+                    {Memo: {MemoType: Buffer.from("KYC-ACCOUNT", 'utf8').toString('hex').toUpperCase(), MemoData: Buffer.from(this.kycAccount , 'utf8').toString('hex').toUpperCase()}}
+                  ]
         },
         custom_meta: {
           instruction: "Please pay with the account you want to issue your Token from! (Issuer Account)",
@@ -330,7 +348,9 @@ export class CreateToken implements OnInit, OnDestroy {
     this.loadingData = false;
   }
 
-  async signInWithIssuerAccount() {
+  /**
+   *
+    async signInWithIssuerAccount() {
     this.loadingData = true;
     //setting up xumm payload and waiting for websocket
     let backendPayload:GenericBackendPostRequest = {
@@ -380,67 +400,85 @@ export class CreateToken implements OnInit, OnDestroy {
     this.loadingData = false;
   }
 
+  **/
+
   async loadAccountDataIssuer(xrplAccount: string) {
-    //this.infoLabel = "loading " + xrplAccount;
-    if(xrplAccount && isValidXRPAddress(xrplAccount)) {
-      this.loadingData = true;
-      
-      let account_info_request:any = {
-        command: "account_info",
-        account: xrplAccount,
-        "strict": true,
-      }
+    try {
+      this.infoLabel2 = "loading " + xrplAccount;
+      if(xrplAccount && isValidXRPAddress(xrplAccount)) {
+        this.loadingData = true;
+        
+        let account_info_request:any = {
+          command: "account_info",
+          account: xrplAccount,
+          "strict": true,
+        }
 
-      let message_acc_info:any = await this.xrplWebSocket.getWebsocketMessage("token-create", account_info_request, this.isTestMode);
-      //console.log("xrpl-transactions account info: " + JSON.stringify(message_acc_info));
-      //this.infoLabel = JSON.stringify(message_acc_info);
-      if(message_acc_info && message_acc_info.status && message_acc_info.type && message_acc_info.type === 'response') {
-        if(message_acc_info.status === 'success' && message_acc_info.result && message_acc_info.result.account_data) {
-          this.issuer_account_info = message_acc_info.result.account_data;
+        let message_acc_info:any = await this.xrplWebSocket.getWebsocketMessage("token-create", account_info_request, this.isTestMode);
+        //console.log("xrpl-transactions account info: " + JSON.stringify(message_acc_info));
+        this.infoLabel = JSON.stringify(message_acc_info);
+        if(message_acc_info && message_acc_info.status && message_acc_info.type && message_acc_info.type === 'response') {
+          if(message_acc_info.status === 'success' && message_acc_info.result && message_acc_info.result.account_data) {
+            this.issuer_account_info = message_acc_info.result.account_data;
 
-          //this.infoLabel = JSON.stringify(this.issuer_account_info);
+            this.infoLabel = JSON.stringify(this.issuer_account_info);
 
-          this.needDefaultRipple = !flagUtil.isDefaultRippleEnabled(this.issuer_account_info.Flags)
-          this.blackholeDisallowXrp = flagUtil.isDisallowXRPEnabled(this.issuer_account_info.Flags);
-          this.blackholeMasterDisabled = flagUtil.isMasterKeyDisabled(this.issuer_account_info.Flags)
+            this.needDefaultRipple = !flagUtil.isDefaultRippleEnabled(this.issuer_account_info.Flags)
+            this.blackholeDisallowXrp = flagUtil.isDisallowXRPEnabled(this.issuer_account_info.Flags);
+            this.blackholeMasterDisabled = flagUtil.isMasterKeyDisabled(this.issuer_account_info.Flags)
 
-          //if account exists, check for already issued currencies
-          let gateway_balances_request:any = {
-            command: "gateway_balances",
-            account: xrplAccount,
-            strict: true,
-            ledger_index: "validated"
-          }
+            //if account exists, check for already issued currencies
+            let gateway_balances_request:any = {
+              command: "gateway_balances",
+              account: xrplAccount,
+              strict: true,
+              ledger_index: "validated"
+            }
 
-          let gateway_balances:any = await this.xrplWebSocket.getWebsocketMessage("token-create", gateway_balances_request, this.isTestMode);
+            let gateway_balances:any = await this.xrplWebSocket.getWebsocketMessage("token-create", gateway_balances_request, this.isTestMode);
 
-          if(gateway_balances && gateway_balances.status && gateway_balances.status === 'success' && gateway_balances.type && gateway_balances.type === 'response' && gateway_balances.result && gateway_balances.result.obligations) {
-            let obligations:any = gateway_balances.result.obligations;
-            
-            if(obligations) {
-                for (var currency in obligations) {
-                    if (obligations.hasOwnProperty(currency)) {
-                        this.alreadyIssuedCurrencies.push(currency);
-                    }
-                }
-            } else {
+            if(gateway_balances && gateway_balances.status && gateway_balances.status === 'success' && gateway_balances.type && gateway_balances.type === 'response' && gateway_balances.result && gateway_balances.result.obligations) {
+              let obligations:any = gateway_balances.result.obligations;
+              
+              if(obligations) {
+                  for (var currency in obligations) {
+                      if (obligations.hasOwnProperty(currency)) {
+                          this.alreadyIssuedCurrencies.push(currency);
+                      }
+                  }
+              } else {
+                this.alreadyIssuedCurrencies = [];
+              }
+            } else {                
               this.alreadyIssuedCurrencies = [];
             }
-          } else {                
+
+            if(!this.isTestMode) {
+              let kycResponse:any = await this.xummApi.getKycStatus(xrplAccount)
+
+              this.infoLabel3 = JSON.stringify(kycResponse);
+
+              this.accountHasKYC = kycResponse && kycResponse.account === xrplAccount && kycResponse.kycApproved;
+
+              //save kyc account
+              if(kycResponse && kycResponse.kycApproved)
+                this.kycAccount = kycResponse.account
+            }
+
+          } else {
+            this.issuer_account_info = message_acc_info;
             this.alreadyIssuedCurrencies = [];
           }
-
         } else {
-          this.issuer_account_info = message_acc_info;
+          this.issuer_account_info = "no account";
           this.alreadyIssuedCurrencies = [];
         }
       } else {
-        this.issuer_account_info = "no account";
+        this.issuer_account_info = "no account"
         this.alreadyIssuedCurrencies = [];
       }
-    } else {
-      this.issuer_account_info = "no account"
-      this.alreadyIssuedCurrencies = [];
+    } catch(err) {
+      this.errorLabel = JSON.stringify(err);
     }
   }
 
@@ -541,6 +579,10 @@ export class CreateToken implements OnInit, OnDestroy {
   }
 
   async sendDefaultRipple() {
+
+    if(!this.isTestMode && (!this.accountHasKYC || !this.kycAccount))
+      return;
+
     this.loadingData = true;
 
     let genericBackendRequest:GenericBackendPostRequest = {
@@ -624,6 +666,10 @@ export class CreateToken implements OnInit, OnDestroy {
   }
 
   async setTrustline() {
+
+    if(!this.isTestMode && (!this.accountHasKYC || !this.kycAccount))
+      return;
+
     this.loadingData = true;
 
     let genericBackendRequest:GenericBackendPostRequest = {
@@ -677,6 +723,10 @@ export class CreateToken implements OnInit, OnDestroy {
   }
 
   async issueToken() {
+
+    if(!this.isTestMode && (!this.accountHasKYC || !this.kycAccount))
+      return;
+
     this.loadingData = true;
     let genericBackendRequest:GenericBackendPostRequest = {
       options: {
@@ -702,9 +752,14 @@ export class CreateToken implements OnInit, OnDestroy {
       }
     }
 
+    let memos:any[] = [{Memo: {MemoType: Buffer.from("KYC-ACCOUNT", 'utf8').toString('hex').toUpperCase(), MemoData: Buffer.from(this.kycAccount , 'utf8').toString('hex').toUpperCase()}}];
+
+
     if(this.memoInput && this.memoInput.trim().length > 0 && !genericBackendRequest.payload.txjson.Memos) {
-      genericBackendRequest.payload.txjson.Memos = [{Memo: {MemoType: Buffer.from("Token-Creation", 'utf8').toString('hex').toUpperCase(), MemoData: Buffer.from(this.memoInput.trim(), 'utf8').toString('hex').toUpperCase()}}];
+      memos.push({Memo: {MemoType: Buffer.from("Token-Creation", 'utf8').toString('hex').toUpperCase(), MemoData: Buffer.from(this.memoInput.trim(), 'utf8').toString('hex').toUpperCase()}})
     }
+
+    genericBackendRequest.payload.txjson.Memos = memos;
 
     try {
       let message:any = await this.waitForTransactionSigning(genericBackendRequest);
@@ -899,6 +954,16 @@ export class CreateToken implements OnInit, OnDestroy {
     }
 
     this.loadingData = false;
+  }
+
+  openTestnetInBrowser() {
+    if (typeof window.ReactNativeWebView !== 'undefined') {
+      //this.infoLabel = "opening sign request";
+      window.ReactNativeWebView.postMessage(JSON.stringify({
+        command: "openBrowser",
+        url: "https://xumm.community/tools"
+      }));
+    }
   }
 
   copyLink() {

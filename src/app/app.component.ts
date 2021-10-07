@@ -43,7 +43,7 @@ export class AppComponent implements OnInit {
       let xAppToken = params.xAppToken;
       let xAppStyle = params.xAppStyle;
 
-      this.receivedParams = !(xAppToken == null && xAppStyle == null);
+      this.receivedParams = xAppToken != null || xAppStyle != null;
       //console.log("has params received: " + this.receivedParams)
 
       //console.log("received pararms: " + JSON.stringify(params));
