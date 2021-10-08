@@ -2,7 +2,7 @@ import { Component, Input, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import { XummService } from './services/xumm.service'
 import { XRPLWebsocket } from './services/xrplWebSocket';
 import { Observable, Subject, Subscription } from 'rxjs';
-import { GenericBackendPostRequest } from './utils/types';
+import { GenericBackendPostRequest, TransactionValidation } from './utils/types';
 import * as flagUtil from './utils/flagutils';
 import { MatStepper } from '@angular/material/stepper';
 import * as normalizer from './utils/normalizers';
@@ -73,7 +73,8 @@ export class CreateToken implements OnInit, OnDestroy {
   transactionSuccessfull: Subject<void> = new Subject<void>();
 
   paymentSuccessfull:boolean = false;
-  paymentFound: boolean = false;
+  paymentChecked:boolean = false;
+  paymentFound:boolean = false;
   paymentStarted:boolean = false;
 
   needDefaultRipple:boolean = true;
@@ -297,9 +298,6 @@ export class CreateToken implements OnInit, OnDestroy {
 
   async payForToken() {
 
-    if(!this.isTestMode && (!this.accountHasKYC || !this.kycAccount))
-      return;
-
     this.loadingData = true;
 
     let genericBackendRequest:GenericBackendPostRequest = {
@@ -348,9 +346,7 @@ export class CreateToken implements OnInit, OnDestroy {
     this.loadingData = false;
   }
 
-  /**
-   *
-    async signInWithIssuerAccount() {
+  async signInWithIssuerAccount() {
     this.loadingData = true;
     //setting up xumm payload and waiting for websocket
     let backendPayload:GenericBackendPostRequest = {
@@ -361,10 +357,11 @@ export class CreateToken implements OnInit, OnDestroy {
       },
       payload: {
           txjson: {
-              TransactionType: "SignIn"
+            Account: this.issuerAccount,         
+            TransactionType: "SignIn"
           },
           custom_meta: {
-            instruction: "Please choose the account which should create the token. This account is called 'Issuer account'.\n\nPlease sign the request to confirm.",
+            instruction: "Please sign with the issuer account!",
             blob: { source: "Issuer"}
           }
       }
@@ -381,17 +378,12 @@ export class CreateToken implements OnInit, OnDestroy {
         //this.infoLabel2 = "signInToValidateTimedPayment: " + JSON.stringify(checkPayment);
         //console.log("login to validate payment: " + JSON.stringify(checkPayment));
         if(checkPayment && checkPayment.success && checkPayment.testnet == this.isTestMode) {
-          this.issuerAccount = checkPayment.account;
-          this.validIssuer = true;
           this.paymentFound = true;
         } else if(checkPayment && checkPayment.account) {
-          this.issuerAccount = checkPayment.account;
-          this.validIssuer = true;
           this.paymentFound = false;
         }
 
-
-        await this.loadAccountDataIssuer(this.issuerAccount);
+        this.paymentChecked = true;
       }
     } catch(err) {
       this.handleError(err);
@@ -399,8 +391,6 @@ export class CreateToken implements OnInit, OnDestroy {
 
     this.loadingData = false;
   }
-
-  **/
 
   async loadAccountDataIssuer(xrplAccount: string) {
     try {
@@ -463,6 +453,9 @@ export class CreateToken implements OnInit, OnDestroy {
               //save kyc account
               if(kycResponse && kycResponse.kycApproved)
                 this.kycAccount = kycResponse.account
+            } else {
+              this.accountHasKYC = true;
+              this.kycAccount = xrplAccount;
             }
 
           } else {
@@ -580,9 +573,6 @@ export class CreateToken implements OnInit, OnDestroy {
 
   async sendDefaultRipple() {
 
-    if(!this.isTestMode && (!this.accountHasKYC || !this.kycAccount))
-      return;
-
     this.loadingData = true;
 
     let genericBackendRequest:GenericBackendPostRequest = {
@@ -667,9 +657,6 @@ export class CreateToken implements OnInit, OnDestroy {
 
   async setTrustline() {
 
-    if(!this.isTestMode && (!this.accountHasKYC || !this.kycAccount))
-      return;
-
     this.loadingData = true;
 
     let genericBackendRequest:GenericBackendPostRequest = {
@@ -723,9 +710,6 @@ export class CreateToken implements OnInit, OnDestroy {
   }
 
   async issueToken() {
-
-    if(!this.isTestMode && (!this.accountHasKYC || !this.kycAccount))
-      return;
 
     this.loadingData = true;
     let genericBackendRequest:GenericBackendPostRequest = {
@@ -966,6 +950,16 @@ export class CreateToken implements OnInit, OnDestroy {
     }
   }
 
+  openBlackholeInfo() {
+    if (typeof window.ReactNativeWebView !== 'undefined') {
+      //this.infoLabel = "opening sign request";
+      window.ReactNativeWebView.postMessage(JSON.stringify({
+        command: "openBrowser",
+        url: "https://xrpl.org/accounts.html#special-addresses"
+      }));
+    }
+  }
+
   copyLink() {
     if(this.getIssuer() && this.currencyCode && this.limit) {
       clipboard("https://xumm.community?issuer="+this.getIssuer()+"&currency="+this.currencyCode+"&limit="+this.limit);
@@ -989,6 +983,10 @@ export class CreateToken implements OnInit, OnDestroy {
     // move to next step
     this.stepper.next();
     this.stepper.selected.editable = true;
+
+    if(this.stepper.selectedIndex == 1) {
+      this.scrollToTop();
+    }
   }
 
   moveBack() {

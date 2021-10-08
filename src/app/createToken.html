@@ -9,7 +9,8 @@
   </mat-toolbar>
 
   <mat-card class="mat-card-red" *ngIf="errorLabel" fxLayout="column" fxLayoutGap="0.5em;">
-    <label>Sorry that this error happened! Please copy the following error and send it to @XummCommunity on twitter or via mail to: XummCommunity@gmail.com . Thanks for your help!</label><br>
+    <label>Sorry that this error happened! Please copy the following error and send it to @XummCommunity on twitter or via mail to: XummCommunity@gmail.com . Thanks for your help!</label>
+    <label>&nbsp;</label>
     <label class="break-words" (click)="copyError()">{{errorLabel}}</label>
     <button mat-button class="xumm-grey-background" aria-label="Copy Error" (click)="copyError()">
       Copy&nbsp;<mat-icon style="font-size: 16px; width: fit-content; height: fit-content;">content_copy</mat-icon>
@@ -24,17 +25,21 @@
     <mat-step completed="false" editable="false">
         <mat-card fxLayout="column" fxLayoutGap="0.5em">
             <ng-template matStepLabel>Description</ng-template>
-            <label class="description">This xApp will help you to create your own currency (token) on the XRP Ledger.</label>
+            <label class="description">This xApp lets you create your own token on the XRP Ledger.</label>
             <label>From 'beer-token' over 'toilet-paper-token' (TPT), everything is possible!</label>
             <label>A new TrustLine for your Token will be created from the recipient account. This adds {{ownerReserve/1000000}} XRP to the recipients account reserve.</label>
             <mat-card class="mat-card-orange" fxLayout="column">
-              <label>Also we will charge you 50 XRP for using this service to create your Token and your initial issuing to one other account.</label>
+              <label>To create your token, KYC for the issuer account is required.</label>
+              <label>We will also charge you 50 XRP to use this service</label>
               <label>So please make sure you have at least 50 XRP available balance in the issuer and {{ownerReserve/1000000}} XRP in the recipient account!</label>
-              <label>Once 50 XRP is paid, you have 24h to create your token. After 24h you would need to pay again.</label>
+              <label>&nbsp;</label>
+              <label>If you just want to play around and test this xApp, you can issue a token on the XRP Ledger TEST network. No KYC is required there. Below you will find a link which lets you setup a testnet account with 1000 XRP.</label>
+              <label>Once the below guide was successfully walked through (you need 2 test net accounts!), simply open the xApp again.</label>
+              <label>&nbsp;</label>
+              <label class="xumm-orange" style="text-decoration: underline;" (click)="openTestnetInBrowser()">https://xumm.community/tools -> 'Testnet Account'</label>
             </mat-card>
 
             <label>The 50 XRP payment is NOT refundable.</label>
-            <label>Issuing more tokens to any other account will be free of charge.</label>
 
             <label>Click 'Next' and follow the instructions if you are ready and you know what you are doing!</label>
             <div style="padding-top: 0.5em;">
@@ -47,34 +52,29 @@
       <mat-card fxLayout="column" fxLayoutGap="0.5em">
           <ng-template matStepLabel>Issuer Account</ng-template>
           <div fxLayout="column" fxLayoutGap="0.5em" *ngIf="issuer_account_info">
-            <label class="description">The account you want to create the token with is:</label>
-            <label *ngIf="issuer_account_info && issuer_account_info.Account">{{issuer_account_info.Account}}</label>
-            <label *ngIf="issuer_account_info && issuer_account_info.account">{{issuer_account_info.account}}</label>
+            <label>The account you want to create the token with is:</label>
+            <mat-card class="mat-card-green">
+              <label *ngIf="issuer_account_info && issuer_account_info.Account">{{issuer_account_info.Account}}</label>
+              <label *ngIf="issuer_account_info && issuer_account_info.account">{{issuer_account_info.account}}</label>
+            </mat-card>
 
             <mat-card class="mat-card-orange">
-              <label class="xumm-orange">To change your issuer account, please close this xApp, select the account you want to issue from in the home screen and open the xApp again.</label>
+              <label class="xumm-orange">To change your issuer account, please close this xApp, navigate to the home screen and switch to the account you want to issue your token from. Then open the xApp again.</label>
             </mat-card>
           </div>
 
           <div style="padding-top: 0.5em;">
-            <mat-card *ngIf="issuer_account_info && !isTestMode && !accountHasKYC && !loadingData" class="mat-card-red">
+            <mat-card *ngIf="issuer_account_info && !accountHasKYC && !loadingData" class="mat-card-red">
               <label>Your account has not been KYCed yet. We only allow you to issue a token on the MAIN network if you run through KYC with your account. To start KYC, please click the following link:</label>
-              <br><br>
+              <label>&nbsp;</label>
               <a href="https://xumm.app/detect/xapp:xumm.kyc?origin=dd1e8d7e-8017-4375-9afa-9a67678f0974">Start KYC</a>
-              <br><br>
-              <label>If you just want to play around and test this xApp, you can issue a token on the XRP Ledger TEST network. No KYC is required there. Below you will find a link which lets you setup a testnet account.</label>
-              <label>Once the below guide was successfully walked through, open the xApp again. Make sure you are connected to a TEST net node! (will be done in the linked guide)</label>
-              <br><br>
-              <label class="xumm-orange" style="text-decoration: underline;" (click)="openTestnetInBrowser()">https://xumm.community/tools -> 'Testnet Account'</label>
-              
-
             </mat-card>
 
-            <mat-card *ngIf="(accountHasKYC || isTestMode) && issuer_account_info && issuer_account_info.error && issuer_account_info.error == 'actNotFound' && !loadingData" class="mat-card-red">
+            <mat-card *ngIf="accountHasKYC && issuer_account_info && issuer_account_info.error && issuer_account_info.error == 'actNotFound' && !loadingData" class="mat-card-red">
               <label>This account is not activated on {{isTestMode ? 'Testnet' : 'Mainnet'}}.</label>
             </mat-card>
 
-            <mat-card *ngIf="(accountHasKYC || isTestMode) && issuer_account_info && issuer_account_info.Balance && getAvailableBalanceIssuer() < 50 && !loadingData" class="mat-card-red" fxLayout="column">
+            <mat-card *ngIf="accountHasKYC && issuer_account_info && issuer_account_info.Balance && getAvailableBalanceIssuer() < 50 && !loadingData" class="mat-card-red" fxLayout="column">
               <label>This account does not have enough balance to create a Token. At least 50 XRP should be available!</label>
               <label>Current available Balance: {{getAvailableBalanceIssuer()}} XRP.</label>
             </mat-card>
@@ -88,7 +88,7 @@
           </div>
 
           <div style="padding-top: 0.5em;" fxLayoutGap="0.5em">
-              <button mat-raised-button color="primary" (click)="moveNext()" [disabled]="(!accountHasKYC && !isTestMode) || !issuer_account_info || !issuer_account_info.Account || loadingData || getAvailableBalanceIssuer() < 50">Next</button>
+              <button mat-raised-button color="primary" (click)="moveNext()" [disabled]="!accountHasKYC|| !issuer_account_info || !issuer_account_info.Account || loadingData || getAvailableBalanceIssuer() < 50">Next</button>
               <button mat-raised-button class="xumm-grey-background" (click)="moveBack()" [disabled]="loadingData">Back</button>
           </div>
       </mat-card>
@@ -98,11 +98,12 @@
       <mat-card fxLayout="column" fxLayoutGap="0.5em">
           <ng-template matStepLabel>Requirements</ng-template>
           <label class="description">The following requirements need to be met to create your Token.</label>
-          <label>Please read and accept every checkbox to make sure you understand what you are doing and you are good to go!</label><br>
+          <label>Please read and accept every checkbox to make sure you understand what you are doing and you are good to go!</label>
+          <label>&nbsp;</label>
           <mat-checkbox [(ngModel)]="checkBoxTwoAccounts" [ngClass]="(checkBoxTwoAccounts ? 'xumm-green': 'xumm-red')">You have the keys of two accounts. One for issuing and one for receiving your Token.</mat-checkbox>
           <mat-checkbox [(ngModel)]="checkBoxIssuerInfo" [ngClass]="(checkBoxIssuerInfo ? 'xumm-green': 'xumm-red')">It is recommended that the issuer account does NOT have outgoing trust lines! Please use an account as issuer account that you don't access/use regulary.</mat-checkbox>
           <mat-checkbox [(ngModel)]="checkBoxFiveXrp" [ngClass]="(checkBoxFiveXrp ? 'xumm-green': 'xumm-red')">You accept paying 50 XRP for this service.</mat-checkbox>
-          <mat-checkbox [(ngModel)]="checkBoxSufficientFunds" [ngClass]="(checkBoxSufficientFunds ? 'xumm-green': 'xumm-red')">The issuing and recipient accounts have enough funds. (At least 50 XRP available balance)</mat-checkbox>
+          <mat-checkbox [(ngModel)]="checkBoxSufficientFunds" [ngClass]="(checkBoxSufficientFunds ? 'xumm-green': 'xumm-red')">The issuing and recipient accounts have enough funds. (Issuer: 50 XRP & Recipient: 2 XRP)</mat-checkbox>
           <mat-checkbox [(ngModel)]="checkBoxNetwork" [ngClass]="(checkBoxNetwork ? 'xumm-green': 'xumm-red')">Your XUMM app is connected to the {{isTestMode ? 'TEST' : 'MAIN'}} network. That is where I want to create my token!</mat-checkbox>
           <mat-checkbox [(ngModel)]="checkBoxNoLiability" [ngClass]="(checkBoxNoLiability ? 'xumm-green': 'xumm-red')">We take no liability if you are not able to issue your own Token. The payment is not refundable. Only proceed if you know what you are are doing!</mat-checkbox>
           <mat-checkbox [(ngModel)]="checkBoxDisclaimer" [ngClass]="(checkBoxDisclaimer ? 'xumm-green': 'xumm-red')">If you are going to issue your Token for commercial use, we recommend to NOT use this tool. We are not liable for any regulatory implications, depending on the jurisdiction you live in.</mat-checkbox>
@@ -118,7 +119,7 @@
       <mat-card fxLayout="column" fxLayoutGap="0.5em">
           <ng-template matStepLabel>Recipient Account</ng-template>
           <div fxLayout="column" fxLayoutGap="0.5em">
-            <label class="description">What is the account which should receive your Token?</label>
+            <label>What is the account which should receive your Token?</label>
             <label *ngIf="recipient_account_info && (recipient_account_info.Account || recipient_account_info.account)">Currently selected:</label>
             <label *ngIf="recipient_account_info && recipient_account_info.Account">{{recipient_account_info.Account}}</label>
             <label *ngIf="recipient_account_info && recipient_account_info.account">{{recipient_account_info.account}}</label>
@@ -158,7 +159,7 @@
     <mat-step completed="false" editable="false">
       <mat-card fxLayout="column" fxLayoutGap="0.5em">
           <ng-template matStepLabel>Information about your Token</ng-template>
-          <label class="description">We need to define some details about the Token you want to create.</label>
+          <label>We need to define some details about the Token you want to create.</label>
           <form fxLayout="column" fxLayoutGap="0.5em">
             <label>What is the currency code you want to use for your Token? As Example: 'ABC' or 'NixerCoin'</label>
             <mat-form-field style="padding-top: 0.5em;">
@@ -207,12 +208,18 @@
     <mat-step completed="false" editable="false">
       <mat-card fxLayout="column" fxLayoutGap="0.5em">
         <ng-template matStepLabel>Signing information</ng-template>
-        <mat-card *ngIf="recipient_account_info && recipient_account_info.Account && !loadingData && getAvailableBalanceRecipient() >= 5" class="mat-card-red" fxLayout="column" fxLayoutGap="0.3em">
+
+        <mat-card *ngIf="recipient_account_info && recipient_account_info.Account && !loadingData && getAvailableBalanceRecipient() >= 2" class="mat-card-orange" fxLayout="column" fxLayoutGap="0.3em">
           <label>In the following step by step guide you will need to sign various transactions. The correct account to sign each transaction with (issuer or recipient account) is already preselected! Please DO NOT change the preselected account!</label>
           <label>If you think the preselected account is WRONG, then please CANCEL this guide and do not continue with the steps.</label>
         </mat-card>
 
         <mat-checkbox [(ngModel)]="checkBoxAccountsPreselected" [ngClass]="(checkBoxAccountsPreselected ? 'xumm-green': 'xumm-red')" [disabled]="loadingData">Yes, I understand to NOT CHANGE the preselected accounts in the sign requests during this guide.</mat-checkbox>
+
+        <div *ngIf="loadingData" fxLayoutAlign="start center">
+          <label>Loading...</label>
+          <mat-progress-spinner color="primary" mode="indeterminate" diameter=25></mat-progress-spinner>
+        </div>
 
         <div fxLayoutGap="0.5em" style="padding-top: 0.5em;">
           <button mat-raised-button color="primary" [disabled]="!checkBoxAccountsPreselected || loadingData" (click)="moveNext()">Next</button>
@@ -226,8 +233,13 @@
         <ng-template matStepLabel>Payment</ng-template>
 
         <div *ngIf="checkBoxAccountsPreselected">
-          <label class="description">Please pay 50 XRP to use this service.</label>
-          <div fxLayout="column" fxLayoutGap="0.5em">
+
+          <div *ngIf="!paymentChecked" fxLayout="column" fxLayoutGap="0.5em" fxLayoutAlign="center start" style="padding-top: 0.5em;">
+            <label>Please sign in so we can check your payment.</label>
+            <button mat-raised-button color="primary" (click)="signInWithIssuerAccount()" [disabled]="loadingData">Sign in with issuer</button>
+          </div>
+
+          <div *ngIf="paymentChecked" fxLayout="column" fxLayoutGap="0.5em">
             <div style="padding-top: 0.5em;" *ngIf="!paymentSuccessfull && !paymentFound"  fxLayout="column" fxLayoutGap="0.5em">
               <mat-card class="mat-card-orange">We could not find any valid previous payment for the account {{issuer_account_info.Account}}.</mat-card>
               <div fxLayoutAlign="start center">
@@ -245,10 +257,10 @@
           </div>
         </div>
 
-        <mat-card *ngIf="issuer_account_info && !isTestMode && !accountHasKYC && !loadingData" class="mat-card-red">
+        <mat-card *ngIf="issuer_account_info && !accountHasKYC && !loadingData" class="mat-card-red">
           <label>Your account has not been KYCed yet. We only allow you to issue a token if you run through KYC with your account.</label>
           <label>To start KYC, please click the following link:</label>
-          <br><br>
+          <label>&nbsp;</label>
           <a href="https://xumm.app/detect/xapp:xumm.kyc?origin=dd1e8d7e-8017-4375-9afa-9a67678f0974">Start KYC</a>
         </mat-card>
 
@@ -258,7 +270,7 @@
         </div>
 
         <div fxLayoutGap="0.5em" style="padding-top: 0.5em;">
-            <button mat-raised-button color="primary" [disabled]="(!accountHasKYC && !isTestMode) || !issuer_account_info || (!paymentSuccessfull && !paymentFound) || loadingData" (click)="moveNext()">Next</button>
+            <button mat-raised-button color="primary" [disabled]="!paymentChecked || !accountHasKYC || !issuer_account_info || (!paymentSuccessfull && !paymentFound) || loadingData" (click)="moveNext()">Next</button>
             <button mat-raised-button class="xumm-grey-background" (click)="moveBack()" [disabled]="loadingData">Back</button>
         </div>
       </mat-card>
@@ -268,7 +280,7 @@
       <mat-card fxLayout="column" fxLayoutGap="0.5em">
         <ng-template matStepLabel>Set DefaultRipple</ng-template>
         <div fxLayout="column" fxLayoutGap="0.5em">
-          <label class="description">We need to set the DefaultRipple flag to your issuer account.</label>
+          <label>We need to set the DefaultRipple flag to your issuer account.</label>
           <label>This allows you and others to send your Token through the XRP Ledger. If we do not set the flag, people won't be able to send your Token.</label>
           <div fxLayoutAlign="start center">
             <button mat-raised-button color="primary" (click)="sendDefaultRipple()" [disabled]="!needDefaultRipple ||loadingData">
@@ -300,7 +312,7 @@
       <mat-card fxLayout="column" fxLayoutGap="0.5em">
         <ng-template matStepLabel>Set TrustLine for your Token</ng-template>
         <div fxLayout="column" fxLayoutGap="0.5em">
-          <label class="description">We have to set a TrustLine from the Token recipient to the issuing account: {{getIssuer()}}</label>
+          <label>We have to set a TrustLine from the Token recipient to the issuing account: {{getIssuer()}}</label>
           <div fxLayoutAlign="start center">
             <button mat-raised-button color="primary" (click)="setTrustline()" [disabled]="recipientTrustlineSet || loadingData">
               Set Trustline from Recipient to Issuer
@@ -331,7 +343,7 @@
       <mat-card fxLayout="column" fxLayoutGap="0.5em">
         <ng-template matStepLabel>Issuing your Token</ng-template>
         <div fxLayout="column" fxLayoutGap="0.5em">
-          <label class="description">All parameters set! Clear for takeoff, eh, issuing your token!</label>
+          <label>All parameters set! Clear for takeoff, eh, issuing your token!</label>
           <mat-card class="mat-card-orange" fxLayout="column">
             <label>We are going to issue: <b>{{this.limit}} {{this.currencyCode}}</b></label>
             <label>to: <b>{{recipient_account_info && recipient_account_info.Account}}</b></label>
@@ -381,19 +393,22 @@
           </mat-card>
         </div>
         <div *ngIf="isAllowedToBlackhole()" fxLayout="column" fxLayoutGap="0.5em">
-          <mat-card class="mat-card-warning">
-            <label>This is an OPTIONAL step. You can "black hole" the issuer account. That means you would not be able to issue more tokens (fixed supply) AND you would lose access to the issuer account!</label>
+          <mat-card class="mat-card-orange">
+            <label>This is an OPTIONAL step. You can "black hole" the issuer account. That means you would not be able to issue more tokens (fixed supply) AND you would lose ALL access to the issuer account!</label>
           </mat-card>
           <label>Please skip this step if you don't know what that means!</label>
           <div *ngIf="(!blackholeRegularKeySet || !blackholeMasterDisabled)">
             <mat-checkbox [(ngModel)]="checkBoxBlackhole1" [ngClass]="(checkBoxBlackhole1 ? 'xumm-green': 'xumm-red')">I understand the implications and want to black hole the issuer account.</mat-checkbox>
             <mat-checkbox [(ngModel)]="checkBoxBlackhole2" [ngClass]="(checkBoxBlackhole2 ? 'xumm-green': 'xumm-red')">I understand that I can not create more tokens. The supply of my Token will be fixed.</mat-checkbox>
-            <mat-checkbox [(ngModel)]="checkBoxBlackhole3" [ngClass]="(checkBoxBlackhole3 ? 'xumm-green': 'xumm-red')">I understand that I will LOSE ALL ACCESS to the issuer account: {{getIssuer()}}. I WON'T BE ABLE TO RECOVER THE ACCESS!</mat-checkbox>
+            <mat-checkbox [(ngModel)]="checkBoxBlackhole3" [ngClass]="(checkBoxBlackhole3 ? 'xumm-green': 'xumm-red')">I understand that I will LOSE ALL ACCESS to the issuer account: {{getIssuer()}}. NO ONE WILL BE ABLE TO RECOVER THE ACCESS TO YOUR ACCOUNT!</mat-checkbox>
           </div>
           <mat-card *ngIf="checkBoxBlackhole1 && checkBoxBlackhole2 && checkBoxBlackhole3 && (!blackholeRegularKeySet || !blackholeMasterDisabled)" fxLayout="column" fxLayoutGap="0.5em">
             <label>Okay, lets black hole the issuer account!</label>
-            <label class="warning">We are going to set the RegularKey of the issuer account to the black hole address: <b>rrrrrrrrrrrrrrrrrrrrBZbvji</b> (Called 'ADDRESS_ONE'. <a href="https://xrpl.org/accounts.html#special-addresses" target="_blank">more info...</a> )</label>
-            <label>No one has the secret keys to this account because the address is not derived from a known secret key.</label>
+            <label class="warning">We are going to set the RegularKey of the issuer account to the black hole address:</label>
+            <label><b>rrrrrrrrrrrrrrrrrrrrBZbvji</b></label>
+            <label class="xumm-orange" style="text-decoration: underline;" (click)="openBlackholeInfo()">(Called 'ADDRESS_ONE'. more info... )</label>
+            <label>&nbsp;</label>
+            <label>No one has the secret key to this account because the address is not derived from a known secret key.</label>
             <label class="loading">Additionally we will disallow XRP being sent to your issuer account and disable all other signing methods. This removes all access to this account.</label>
             <mat-checkbox [(ngModel)]="checkBoxBlackhole5" [ngClass]="(checkBoxBlackhole5 ? 'xumm-green': 'xumm-red')">I have read and understand the above text. Let me remove all access to the account: {{getIssuer()}}!</mat-checkbox>
             <div *ngIf="getAvailableBalanceIssuer() > 5">
@@ -444,7 +459,8 @@
         <mat-card class="mat-card-green"><label>Hoooorrrraayy! You have successfully created your token in the XRP Ledger! Now spread the word, send it around and put it to good use!</label></mat-card>
         <label>You can send your Token through the XRP Ledger to accounts which have a TrustLine with your issuer account: <b>{{getIssuer()}}</b></label>
         <mat-card class="mat-card-orange" fxLayout="column" fxLayoutGap="0.3em;">
-          <label>You can share the following link with people interested in your Token. The link will setup the trustline they need to have to receive your Token:</label><br>
+          <label>You can share the following link with people interested in your Token. The link will setup the trustline they need to have to receive your Token:</label>
+          <label>&nbsp;</label>
           <div fxLayout="row" fxLayoutGap="0.3em;">
             <label class="break-words" (click)="copyLink()">https://xumm.community?issuer={{getIssuer()}}&currency={{currencyCode}}&limit={{limit}}</label>
             <button mat-icon-button aria-label="Copy Link" (click)="copyLink()">
