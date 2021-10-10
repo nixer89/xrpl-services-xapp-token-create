@@ -57,9 +57,10 @@ export class CreateToken implements OnInit, OnDestroy {
   recipient_account_info:any;
   isTestMode:boolean = false;
 
-  private issuerAccount: string;
+  issuerAccount: string;
   //private issuerAccount: string;
   validIssuer:boolean = false;
+  signInAccount:string;
 
   currencyCode:string;
   limit:string;
@@ -377,6 +378,9 @@ export class CreateToken implements OnInit, OnDestroy {
         let checkPayment:TransactionValidation = await this.xummApi.signInToValidateTimedPayment(message.payload_uuidv4);
         //this.infoLabel2 = "signInToValidateTimedPayment: " + JSON.stringify(checkPayment);
         //console.log("login to validate payment: " + JSON.stringify(checkPayment));
+
+        this.signInAccount = checkPayment.account;
+
         if(checkPayment && checkPayment.success && checkPayment.testnet == this.isTestMode) {
           this.paymentFound = true;
         } else if(checkPayment && checkPayment.account) {
@@ -387,6 +391,26 @@ export class CreateToken implements OnInit, OnDestroy {
       }
     } catch(err) {
       this.handleError(err);
+    }
+
+    if(this.issuerAccount && this.signInAccount && this.issuerAccount === this.signInAccount) {
+      if(!this.isTestMode) {
+        let kycResponse:any = await this.xummApi.getKycStatus(this.issuerAccount)
+
+        this.infoLabel3 = JSON.stringify(kycResponse);
+
+        this.accountHasKYC = kycResponse && kycResponse.account === this.issuerAccount && kycResponse.kycApproved;
+
+        //save kyc account
+        if(kycResponse && kycResponse.kycApproved)
+          this.kycAccount = kycResponse.account
+      } else {
+        this.accountHasKYC = true;
+        this.kycAccount = this.issuerAccount;
+      }
+    } else {
+      this.paymentChecked = false;
+      this.paymentFound = false;
     }
 
     this.loadingData = false;
@@ -441,21 +465,6 @@ export class CreateToken implements OnInit, OnDestroy {
               }
             } else {                
               this.alreadyIssuedCurrencies = [];
-            }
-
-            if(!this.isTestMode) {
-              let kycResponse:any = await this.xummApi.getKycStatus(xrplAccount)
-
-              this.infoLabel3 = JSON.stringify(kycResponse);
-
-              this.accountHasKYC = kycResponse && kycResponse.account === xrplAccount && kycResponse.kycApproved;
-
-              //save kyc account
-              if(kycResponse && kycResponse.kycApproved)
-                this.kycAccount = kycResponse.account
-            } else {
-              this.accountHasKYC = true;
-              this.kycAccount = xrplAccount;
             }
 
           } else {

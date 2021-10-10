@@ -63,7 +63,16 @@
             </mat-card>
           </div>
 
-          <div style="padding-top: 0.5em;">
+          <div *ngIf="!paymentChecked" fxLayout="column" fxLayoutGap="0.5em" fxLayoutAlign="center start" style="padding-top: 0.5em;">
+            <label>Please sign in so we can check some things.</label>
+            <button mat-raised-button color="primary" (click)="signInWithIssuerAccount()" [disabled]="loadingData">Sign in with issuer</button>
+
+            <mat-card *ngIf="issuerAccount && signInAccount && issuerAccount != signInAccount && !loadingData" class="mat-card-red">
+              <label>The account you signed the transaction with does not match the account you opened the xApp with! Please sign in with the account shown above!</label>
+            </mat-card>
+          </div>
+
+          <div *ngIf="paymentChecked && issuerAccount && signInAccount && issuerAccount === signInAccount && !loadingData" style="padding-top: 0.5em;">
             <mat-card *ngIf="issuer_account_info && !accountHasKYC && !loadingData" class="mat-card-red">
               <label>Your account has not been KYCed yet. We only allow you to issue a token on the MAIN network if you run through KYC with your account. To start KYC, please click the following link:</label>
               <label>&nbsp;</label>
@@ -78,9 +87,7 @@
               <label>This account does not have enough balance to create a Token. At least 50 XRP should be available!</label>
               <label>Current available Balance: {{getAvailableBalanceIssuer()}} XRP.</label>
             </mat-card>
-          </div>
-
-          
+          </div>  
 
           <div *ngIf="!issuer_account_info || loadingData" fxLayoutAlign="start center">
             <label>Loading...</label>
@@ -88,7 +95,7 @@
           </div>
 
           <div style="padding-top: 0.5em;" fxLayoutGap="0.5em">
-              <button mat-raised-button color="primary" (click)="moveNext()" [disabled]="!accountHasKYC|| !issuer_account_info || !issuer_account_info.Account || loadingData || getAvailableBalanceIssuer() < 50">Next</button>
+              <button mat-raised-button color="primary" (click)="moveNext()" [disabled]="!paymentChecked || !accountHasKYC|| !issuer_account_info || !issuer_account_info.Account || loadingData || getAvailableBalanceIssuer() < 50">Next</button>
               <button mat-raised-button class="xumm-grey-background" (click)="moveBack()" [disabled]="loadingData">Back</button>
           </div>
       </mat-card>
@@ -234,11 +241,6 @@
 
         <div *ngIf="checkBoxAccountsPreselected">
 
-          <div *ngIf="!paymentChecked" fxLayout="column" fxLayoutGap="0.5em" fxLayoutAlign="center start" style="padding-top: 0.5em;">
-            <label>Please sign in so we can check your payment.</label>
-            <button mat-raised-button color="primary" (click)="signInWithIssuerAccount()" [disabled]="loadingData">Sign in with issuer</button>
-          </div>
-
           <div *ngIf="paymentChecked" fxLayout="column" fxLayoutGap="0.5em">
             <div style="padding-top: 0.5em;" *ngIf="!paymentSuccessfull && !paymentFound"  fxLayout="column" fxLayoutGap="0.5em">
               <mat-card class="mat-card-orange">We could not find any valid previous payment for the account {{issuer_account_info.Account}}.</mat-card>
@@ -270,7 +272,7 @@
         </div>
 
         <div fxLayoutGap="0.5em" style="padding-top: 0.5em;">
-            <button mat-raised-button color="primary" [disabled]="!paymentChecked || !accountHasKYC || !issuer_account_info || (!paymentSuccessfull && !paymentFound) || loadingData" (click)="moveNext()">Next</button>
+            <button mat-raised-button color="primary" [disabled]="!accountHasKYC || !issuer_account_info || (!paymentSuccessfull && !paymentFound) || loadingData" (click)="moveNext()">Next</button>
             <button mat-raised-button class="xumm-grey-background" (click)="moveBack()" [disabled]="loadingData">Back</button>
         </div>
       </mat-card>
