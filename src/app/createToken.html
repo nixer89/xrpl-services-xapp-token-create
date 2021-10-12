@@ -83,7 +83,7 @@
               <label>This account is not activated on {{isTestMode ? 'Testnet' : 'Mainnet'}}.</label>
             </mat-card>
 
-            <mat-card *ngIf="accountHasKYC && issuer_account_info && issuer_account_info.Balance && getAvailableBalanceIssuer() < 50 && !loadingData" class="mat-card-red" fxLayout="column">
+            <mat-card *ngIf="accountHasKYC && issuer_account_info && issuer_account_info.Balance && getAvailableBalanceIssuer() < 50 && !paymentFound && !loadingData" class="mat-card-red" fxLayout="column">
               <label>This account does not have enough balance to create a Token. At least 50 XRP should be available!</label>
               <label>Current available Balance: {{getAvailableBalanceIssuer()}} XRP.</label>
             </mat-card>
