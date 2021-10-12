@@ -74,7 +74,7 @@
 
           <div *ngIf="paymentChecked && issuerAccount && signInAccount && issuerAccount === signInAccount && !loadingData" style="padding-top: 0.5em;">
             <mat-card *ngIf="issuer_account_info && !accountHasKYC && !loadingData" class="mat-card-red">
-              <label>Your account has not been KYCed yet. We only allow you to issue a token on the MAIN network if you run through KYC with your account. To start KYC, please click the following link:</label>
+              <label>Your account has not been KYC'd yet. We only allow you to issue a token on the MAIN network if you run through KYC with your account. To start KYC, please click the following link:</label>
               <label>&nbsp;</label>
               <a href="https://xumm.app/detect/xapp:xumm.kyc?origin=dd1e8d7e-8017-4375-9afa-9a67678f0974">Start KYC</a>
             </mat-card>
@@ -260,7 +260,7 @@
         </div>
 
         <mat-card *ngIf="issuer_account_info && !accountHasKYC && !loadingData" class="mat-card-red">
-          <label>Your account has not been KYCed yet. We only allow you to issue a token if you run through KYC with your account.</label>
+          <label>Your account has not been KYC'd yet. We only allow you to issue a token if you run through KYC with your account.</label>
           <label>To start KYC, please click the following link:</label>
           <label>&nbsp;</label>
           <a href="https://xumm.app/detect/xapp:xumm.kyc?origin=dd1e8d7e-8017-4375-9afa-9a67678f0974">Start KYC</a>
