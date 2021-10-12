@@ -85,7 +85,7 @@
 
             <mat-card *ngIf="accountHasKYC && issuer_account_info && issuer_account_info.Balance && getAvailableBalanceIssuer() < 50 && !paymentFound && !loadingData" class="mat-card-red" fxLayout="column">
               <label>This account does not have enough balance to create a Token. At least 50 XRP should be available!</label>
-              <label>Current available Balance: {{getAvailableBalanceIssuer()}} XRP.</label>
+              <label>Current available balance: {{getAvailableBalanceIssuer()}} XRP.</label>
             </mat-card>
           </div>  
 
@@ -95,7 +95,7 @@
           </div>
 
           <div style="padding-top: 0.5em;" fxLayoutGap="0.5em">
-              <button mat-raised-button color="primary" (click)="moveNext()" [disabled]="!paymentChecked || !accountHasKYC|| !issuer_account_info || !issuer_account_info.Account || loadingData || getAvailableBalanceIssuer() < 50">Next</button>
+              <button mat-raised-button color="primary" (click)="moveNext()" [disabled]="!paymentChecked || !accountHasKYC|| !issuer_account_info || !issuer_account_info.Account || loadingData || (getAvailableBalanceIssuer() < 50 && !paymentFound)">Next</button>
               <button mat-raised-button class="xumm-grey-background" (click)="moveBack()" [disabled]="loadingData">Back</button>
           </div>
       </mat-card>
