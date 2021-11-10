@@ -38,6 +38,7 @@ export class CreateToken implements OnInit, OnDestroy {
   checkBoxNetwork:boolean = false;
   checkBoxNoLiability:boolean = false;
   checkBoxDisclaimer:boolean = false;
+  checkBoxDisclaimer2:boolean = false;
 
   checkBoxBlackhole1:boolean = false;
   checkBoxBlackhole2:boolean = false;
@@ -109,6 +110,7 @@ export class CreateToken implements OnInit, OnDestroy {
 
   memoInput: string;
   alreadyIssuedCurrencies:string[] = [];
+  hasOutgoingTrustlines:boolean = false;
 
   title: string = "Xumm Community xApp";
   tw: TypeWriter
@@ -129,7 +131,7 @@ export class CreateToken implements OnInit, OnDestroy {
 
         this.infoLabel = JSON.stringify(ottData);
         
-        this.isTestMode = ottData.nodetype == 'TESTNET';
+        this.isTestMode = ottData.nodetype === 'TESTNET';
         //this.isTestMode = true;
 
         this.infoLabel2 = "changed mode to testnet: " + this.isTestMode;
@@ -442,39 +444,49 @@ export class CreateToken implements OnInit, OnDestroy {
             this.blackholeMasterDisabled = flagUtil.isMasterKeyDisabled(this.issuer_account_info.Flags)
 
             //if account exists, check for already issued currencies
-            let gateway_balances_request:any = {
-              command: "gateway_balances",
-              account: xrplAccount,
-              strict: true,
-              ledger_index: "validated"
-            }
-
-            let gateway_balances:any = await this.xrplWebSocket.getWebsocketMessage("token-create", gateway_balances_request, this.isTestMode);
-
-            if(gateway_balances && gateway_balances.status && gateway_balances.status === 'success' && gateway_balances.type && gateway_balances.type === 'response' && gateway_balances.result && gateway_balances.result.obligations) {
-              let obligations:any = gateway_balances.result.obligations;
-              
-              if(obligations) {
-                  for (var currency in obligations) {
-                      if (obligations.hasOwnProperty(currency)) {
-                          this.alreadyIssuedCurrencies.push(currency);
-                      }
-                  }
-              } else {
-                this.alreadyIssuedCurrencies = [];
-              }
-            } else {                
-              this.alreadyIssuedCurrencies = [];
-            }
-
           } else {
             this.issuer_account_info = message_acc_info;
-            this.alreadyIssuedCurrencies = [];
           }
         } else {
           this.issuer_account_info = "no account";
+        }
+
+        let gateway_balances_request:any = {
+          command: "gateway_balances",
+          account: xrplAccount,
+          strict: true,
+          ledger_index: "validated"
+        }
+
+        let gateway_balances:any = await this.xrplWebSocket.getWebsocketMessage("token-create", gateway_balances_request, this.isTestMode);
+
+        if(gateway_balances && gateway_balances.status && gateway_balances.status === 'success' && gateway_balances.type && gateway_balances.type === 'response' && gateway_balances.result && gateway_balances.result.obligations) {
+          let obligations:any = gateway_balances.result.obligations;
+          
+          if(obligations) {
+              for (var currency in obligations) {
+                  if (obligations.hasOwnProperty(currency)) {
+                      this.alreadyIssuedCurrencies.push(currency);
+                  }
+              }
+          } else {
+            this.alreadyIssuedCurrencies = [];
+          }
+        } else {                
           this.alreadyIssuedCurrencies = [];
         }
+
+        //load balance data
+        let accountLinesCommand:any = {
+          command: "account_lines",
+          account: xrplAccount,
+          ledger_index: "validated"
+        }
+
+        let accountLines:any = await this.xrplWebSocket.getWebsocketMessage('token-create', accountLinesCommand, this.isTestMode);
+        
+        this.hasOutgoingTrustlines = accountLines && accountLines.result && accountLines.result.lines && accountLines.result.lines.length > 0 && accountLines.result.lines.filter(line => Number(line.limit) > 0).length > 0;
+        
       } else {
         this.issuer_account_info = "no account"
         this.alreadyIssuedCurrencies = [];
@@ -740,7 +752,10 @@ export class CreateToken implements OnInit, OnDestroy {
           Flags: 131072
         },
         custom_meta: {
-          instruction: "- Issuing " + this.limit + " " + this.currencyCode + " to: " + this.recipient_account_info.Account + "\n\n- Please sign with the ISSUER account!"
+          instruction: "- Issuing " + this.limit + " " + this.currencyCode + " to: " + this.recipient_account_info.Account + "\n\n- Please sign with the ISSUER account!",
+          blob: {
+            issueToken: true
+          }
         }
       }
     }
@@ -762,7 +777,7 @@ export class CreateToken implements OnInit, OnDestroy {
         let txInfo = await this.xummApi.validateTransaction(message.payload_uuidv4);
 
         if(txInfo && txInfo.success && txInfo.account && txInfo.testnet == this.isTestMode) {
-          if(this.issuerAccount == txInfo.account) {
+          if(this.issuerAccount === txInfo.account) {
             this.weHaveIssued = true;
           } else {
             this.weHaveIssued = false;
@@ -959,12 +974,12 @@ export class CreateToken implements OnInit, OnDestroy {
     }
   }
 
-  openBlackholeInfo() {
+  openBlackholeLink() {
     if (typeof window.ReactNativeWebView !== 'undefined') {
       //this.infoLabel = "opening sign request";
       window.ReactNativeWebView.postMessage(JSON.stringify({
         command: "openBrowser",
-        url: "https://xrpl.org/accounts.html#special-addresses"
+        url: "https://xumm.community/tokens"
       }));
     }
   }
@@ -1022,11 +1037,13 @@ export class CreateToken implements OnInit, OnDestroy {
     this.validIssuer = false;
     this.issuer_account_info = null;
     this.needDefaultRipple = true;
+    this.hasOutgoingTrustlines = false;
+    this.alreadyIssuedCurrencies = null;
   }
 
   reset() {
     this.isTestMode = false;
-    this.checkBoxFiveXrp = this.checkBoxNetwork = this.checkBoxSufficientFunds = this.checkBoxTwoAccounts = this.checkBoxNoLiability = this.checkBoxDisclaimer = this.checkBoxIssuingText = this.checkBoxIssuerInfo = false;
+    this.checkBoxFiveXrp = this.checkBoxNetwork = this.checkBoxSufficientFunds = this.checkBoxTwoAccounts = this.checkBoxNoLiability = this.checkBoxDisclaimer = this.checkBoxDisclaimer2 = this.checkBoxIssuingText = this.checkBoxIssuerInfo = false;
     this.currencyCode = this.limit = null;
     this.validCurrencyCode = this.validLimit = false;
     this.issuerAccount = this.issuer_account_info = null;
@@ -1037,6 +1054,8 @@ export class CreateToken implements OnInit, OnDestroy {
     this.weHaveIssued = false;
     this.checkBoxBlackhole1 = this.checkBoxBlackhole2 = this.checkBoxBlackhole3 = this.checkBoxBlackhole4 =this.checkBoxBlackhole5 = false;
     this.blackholeMasterDisabled = this.blackholeRegularKeySet = this.blackholeDisallowXrp =  false;
+    this.hasOutgoingTrustlines = false;
+    this.alreadyIssuedCurrencies = null;
     this.stepper.reset();
   }
 
