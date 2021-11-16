@@ -395,13 +395,13 @@
     <mat-step completed="false" editable="false">
       <mat-card fxLayout="column" fxLayoutGap="0.5em">
         <ng-template matStepLabel>Finished!</ng-template>
-        <mat-card class="mat-card-green"><label>Hoooorrrraayy! You have successfully created your token in the XRP Ledger! Now spread the word, send it around and put it to good use!</label></mat-card>
+        <mat-card class="mat-card-green"><label>Hoooorrrraayy! You have successfully created your token in the XRP Ledger {{isTestMode ? 'TESTNET' : 'MAINNET'}}! Now spread the word, send it around and put it to good use!</label></mat-card>
         <label>You can send your Token through the XRP Ledger to accounts which have a TrustLine with your issuer account: <b>{{getIssuer()}}</b></label>
         <mat-card class="mat-card-orange" fxLayout="column" fxLayoutGap="0.3em;">
           <label>You can share the following link with people interested in your Token. The link will setup the trustline they need to have to receive your Token:</label>
           <label>&nbsp;</label>
           <div fxLayout="row" fxLayoutGap="0.3em;">
-            <label class="break-words" (click)="copyLink()">https://xumm.community?issuer={{getIssuer()}}&currency={{currencyCode}}&limit={{limit}}</label>
+            <label class="break-words" (click)="copyLink()">{{getTrustlineLink()}}</label>
             <button mat-icon-button aria-label="Copy Link" (click)="copyLink()">
               <mat-icon style="font-size: 16px; width: fit-content; height: fit-content;">content_copy</mat-icon>
             </button>

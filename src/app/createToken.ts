@@ -984,9 +984,22 @@ export class CreateToken implements OnInit, OnDestroy {
     }
   }
 
+  getTrustlineLink(): string {
+    let link = "";
+    if(this.getIssuer() && this.currencyCode && this.limit && this.weHaveIssued) {
+      let testnetString:string = this.isTestMode ? "&testnet=true" : null;
+      link = "https://xumm.community?issuer="+this.getIssuer()+"&currency="+this.currencyCode+"&limit="+this.limit;
+      if(testnetString) {
+        link += testnetString
+      }
+    }
+
+    return link;
+  }
+
   copyLink() {
     if(this.getIssuer() && this.currencyCode && this.limit) {
-      clipboard("https://xumm.community?issuer="+this.getIssuer()+"&currency="+this.currencyCode+"&limit="+this.limit);
+      clipboard(this.getTrustlineLink());
       this.snackBar.dismiss();
       this.snackBar.open("TrustLine link copied to clipboard!", null, {panelClass: 'snackbar-success', duration: 3000, horizontalPosition: 'center', verticalPosition: 'bottom'});
     }
