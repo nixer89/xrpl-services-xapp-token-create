@@ -377,17 +377,17 @@ export class CreateToken implements OnInit, OnDestroy {
 
       if(message && message.payload_uuidv4) {
 
-        let checkPayment:TransactionValidation = await this.xummApi.signInToValidateTimedPayment(message.payload_uuidv4);
+        let checkPayment:TransactionValidation = await this.xummApi.checkSignIn(message.payload_uuidv4);
         //this.infoLabel2 = "signInToValidateTimedPayment: " + JSON.stringify(checkPayment);
         //console.log("login to validate payment: " + JSON.stringify(checkPayment));
 
         this.signInAccount = checkPayment.account;
 
-        if(checkPayment && checkPayment.success && checkPayment.testnet == this.isTestMode) {
-          this.paymentFound = true;
-        } else if(checkPayment && checkPayment.account) {
-          this.paymentFound = false;
-        }
+        //if(checkPayment && checkPayment.success && checkPayment.testnet == this.isTestMode) {
+        //  this.paymentFound = true;
+        //} else if(checkPayment && checkPayment.account) {
+        //  this.paymentFound = false;
+        //}
 
         this.paymentChecked = true;
       }

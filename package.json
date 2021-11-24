@@ -1,6 +1,6 @@
 {
   "name": "xumm-xapp-token-create",
-  "version": "0.7.1",
+  "version": "0.7.2",
   "scripts": {
     "ng": "ng",
     "start": "ng serve --port 4202 --open",
@@ -42,7 +42,7 @@
     "@angular/cli": "^12.2.13",
     "@angular/compiler-cli": "^12.2.13",
     "@types/jasmine": "^3.10.2",
-    "@types/node": "^14.17.33",
+    "@types/node": "^14.17.34",
     "codelyzer": "^6.0.2",
     "jasmine-core": "~3.6.0",
     "jasmine-spec-reporter": "^6.0.0",

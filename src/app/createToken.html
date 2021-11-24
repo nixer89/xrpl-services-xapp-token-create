@@ -28,13 +28,14 @@
             <label class="description">This xApp lets you create your own token on the XRP Ledger.</label>
             <label>From 'beer-token' over 'toilet-paper-token' (TPT), everything is possible!</label>
             <label>A new TrustLine for your Token will be created from the recipient account. This adds {{ownerReserve/1000000}} XRP to the recipients account reserve.</label>
+            <label>The issuer account as well as the recipient account needs to be in the same XUMM Wallet app, on the same device. It is not possible to use two devices.</label>
             <mat-card class="mat-card-orange" fxLayout="column">
               <label>To create your token, KYC for the issuer account is required.</label>
-              <label>We will also charge you 50 EUR to use this service</label>
-              <label>So please make sure you have at least 50 EUR available balance in the issuer and {{ownerReserve/1000000}} XRP in the recipient account!</label>
+              <label>We will also charge you 50 XRP to use this service</label>
+              <label>So please make sure you have at least 50 XRP available balance in the issuer and {{ownerReserve/1000000}} XRP in the recipient account!</label>
               <label>&nbsp;</label>
               <label>If you just want to play around and test this xApp, you can issue a token on the XRP Ledger TEST network. No KYC is required there. Below you will find a link which lets you setup a testnet account with 1000 XRP.</label>
-              <label>Once the below guide was successfully walked through (you need 2 test net accounts!), simply open the xApp again.</label>
+              <label>Once the below guide (link) was successfully walked through (you need 2 test net accounts!), simply open the xApp again.</label>
               <label>&nbsp;</label>
               <label class="xumm-orange" style="text-decoration: underline;" (click)="openTestnetInBrowser()">https://xumm.community/tools -> 'Testnet Account'</label>
             </mat-card>
@@ -113,7 +114,7 @@
           <label class="description">The following requirements need to be met to create your Token.</label>
           <label>Please read and accept every checkbox to make sure you understand what you are doing and you are good to go!</label>
           <label>&nbsp;</label>
-          <mat-checkbox [(ngModel)]="checkBoxTwoAccounts" [ngClass]="(checkBoxTwoAccounts ? 'xumm-green': 'xumm-red')">You have the keys of two accounts. One for issuing and one for receiving your Token.</mat-checkbox>
+          <mat-checkbox [(ngModel)]="checkBoxTwoAccounts" [ngClass]="(checkBoxTwoAccounts ? 'xumm-green': 'xumm-red')">You have the keys for two accounts in your XUMM app (one device). One for issuing and one for receiving your Token.</mat-checkbox>
           <mat-checkbox [(ngModel)]="checkBoxIssuerInfo" [ngClass]="(checkBoxIssuerInfo ? 'xumm-green': 'xumm-red')">It is recommended that the issuer account does NOT have outgoing trust lines! Please use an account as issuer account that you don't access/use regulary.</mat-checkbox>
           <mat-checkbox [(ngModel)]="checkBoxFiveXrp" [ngClass]="(checkBoxFiveXrp ? 'xumm-green': 'xumm-red')">You accept paying 50 XRP for this service.</mat-checkbox>
           <mat-checkbox [(ngModel)]="checkBoxSufficientFunds" [ngClass]="(checkBoxSufficientFunds ? 'xumm-green': 'xumm-red')">The issuing and recipient accounts have enough funds. (Issuer: 50 XRP & Recipient: 2 XRP)</mat-checkbox>
@@ -250,7 +251,7 @@
 
           <div *ngIf="paymentChecked" fxLayout="column" fxLayoutGap="0.5em">
             <div style="padding-top: 0.5em;" *ngIf="!paymentSuccessfull && !paymentFound"  fxLayout="column" fxLayoutGap="0.5em">
-              <mat-card class="mat-card-orange">We could not find any valid previous payment for the account {{issuer_account_info.Account}}.</mat-card>
+              <!--mat-card class="mat-card-orange">We could not find any valid previous payment for the account {{issuer_account_info.Account}}.</mat-card-->
               <div fxLayoutAlign="start center">
                 <button mat-raised-button color="primary" [disabled]="loadingData || !checkBoxAccountsPreselected" (click)="payForToken()">
                   Pay 50 XRP
