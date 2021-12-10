@@ -93,9 +93,9 @@ export class XummService {
         }
     }
 
-    async checkTimedPayment(payloadId:string): Promise<TransactionValidation> {
+    async checkPayment(payloadId:string): Promise<TransactionValidation> {
         try {
-            return this.app.get(this.xummBackendURL+"/api/v1/check/timed/payment/"+payloadId);
+            return this.app.get(this.xummBackendURL+"/api/v1/check/payment/"+payloadId);
         } catch(err) {
             console.log(JSON.stringify(err))
             return { error: true, success: false, testnet:false }
