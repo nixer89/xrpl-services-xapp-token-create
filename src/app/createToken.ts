@@ -112,8 +112,10 @@ export class CreateToken implements OnInit, OnDestroy {
   alreadyIssuedCurrencies:string[] = [];
   hasOutgoingTrustlines:boolean = false;
 
-  title: string = "Xumm Community xApp";
+  title: string = "XRPL Services xApp";
   tw: TypeWriter
+
+  termsAndConditions:boolean = false;
 
   @ViewChild('stepper') stepper: MatStepper;
 
@@ -313,7 +315,7 @@ export class CreateToken implements OnInit, OnDestroy {
           Account: this.issuerAccount,
           TransactionType: "Payment",
           Memos : [
-                    {Memo: {MemoType: Buffer.from("[https://xumm.community]-Memo", 'utf8').toString('hex').toUpperCase(), MemoData: Buffer.from("Payment for creating Token via xApp: '"+this.currencyCode.trim()+"'\n" , 'utf8').toString('hex').toUpperCase()}},
+                    {Memo: {MemoType: Buffer.from("[https://xrpl.services]-Memo", 'utf8').toString('hex').toUpperCase(), MemoData: Buffer.from("Payment for creating Token via xApp: '"+this.currencyCode.trim()+"'\n" , 'utf8').toString('hex').toUpperCase()}},
                     {Memo: {MemoType: Buffer.from("KYC-ACCOUNT", 'utf8').toString('hex').toUpperCase(), MemoData: Buffer.from(this.kycAccount , 'utf8').toString('hex').toUpperCase()}}
                   ]
         },
@@ -776,6 +778,8 @@ export class CreateToken implements OnInit, OnDestroy {
 
         let txInfo = await this.xummApi.validateTransaction(message.payload_uuidv4);
 
+        this.infoLabel = JSON.stringify(txInfo);
+
         if(txInfo && txInfo.success && txInfo.account && txInfo.testnet == this.isTestMode) {
           if(this.issuerAccount === txInfo.account) {
             this.weHaveIssued = true;
@@ -969,7 +973,7 @@ export class CreateToken implements OnInit, OnDestroy {
       //this.infoLabel = "opening sign request";
       window.ReactNativeWebView.postMessage(JSON.stringify({
         command: "openBrowser",
-        url: "https://xumm.community/tools"
+        url: "https://xrpl.services/tools"
       }));
     }
   }
@@ -979,7 +983,7 @@ export class CreateToken implements OnInit, OnDestroy {
       //this.infoLabel = "opening sign request";
       window.ReactNativeWebView.postMessage(JSON.stringify({
         command: "openBrowser",
-        url: "https://xumm.community/tokens"
+        url: "https://xrpl.services/tokens"
       }));
     }
   }
@@ -988,7 +992,7 @@ export class CreateToken implements OnInit, OnDestroy {
     let link = "";
     if(this.getIssuer() && this.currencyCode && this.limit && this.weHaveIssued) {
       let testnetString:string = this.isTestMode ? "&testnet=true" : null;
-      link = "https://xumm.community?issuer="+this.getIssuer()+"&currency="+this.currencyCode+"&limit="+this.limit;
+      link = "https://xrpl.services?issuer="+this.getIssuer()+"&currency="+this.currencyCode+"&limit="+this.limit;
       if(testnetString) {
         link += testnetString
       }
@@ -1002,6 +1006,26 @@ export class CreateToken implements OnInit, OnDestroy {
       clipboard(this.getTrustlineLink());
       this.snackBar.dismiss();
       this.snackBar.open("TrustLine link copied to clipboard!", null, {panelClass: 'snackbar-success', duration: 3000, horizontalPosition: 'center', verticalPosition: 'bottom'});
+    }
+  }
+
+  openTermsAndConditions() {
+    if (typeof window.ReactNativeWebView !== 'undefined') {
+      //this.infoLabel = "opening sign request";
+      window.ReactNativeWebView.postMessage(JSON.stringify({
+        command: "openBrowser",
+        url: "https://xrpl.services/terms"
+      }));
+    }
+  }
+
+  openPrivacyPolicy() {
+    if (typeof window.ReactNativeWebView !== 'undefined') {
+      //this.infoLabel = "opening sign request";
+      window.ReactNativeWebView.postMessage(JSON.stringify({
+        command: "openBrowser",
+        url: "https://xrpl.services/privacy"
+      }));
     }
   }
 
