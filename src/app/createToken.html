@@ -17,9 +17,9 @@
     </button>
   </mat-card>
 
-  <!--label *ngIf="infoLabel" style="color: red">{{infoLabel}}</label><br><br>
+  <label *ngIf="infoLabel" style="color: red">{{infoLabel}}</label><br><br>
   <label *ngIf="infoLabel2" style="color: red">{{infoLabel2}}</label>
-  <label *ngIf="infoLabel3" style="color: red">{{infoLabel3}}</label-->
+  <label *ngIf="infoLabel3" style="color: red">{{infoLabel3}}</label>
 
   <mat-vertical-stepper linear #stepper class="theme-background">
     <mat-step completed="false" editable="false">
@@ -45,7 +45,7 @@
             <label>Accept the Terms and Conditions, then click 'Next' and follow the instructions if you are ready and you know what you are doing!</label>
 
             <div fxLayout="row">
-              <mat-checkbox [(ngModel)]="termsAndConditions" (change)="checkChanges()">
+              <mat-checkbox [(ngModel)]="termsAndConditions">
                 Please read and accept the
                 <label class="xumm-orange" (click)="openTermsAndConditions()"> Terms & Conditions </label>
                 and the
@@ -53,9 +53,9 @@
                 before you can continue.
               </mat-checkbox>
             </div>
-            
+
             <div style="padding-top: 0.5em;">
-                <button mat-raised-button color="primary" (click)="moveNext()">Next</button>
+                <button mat-raised-button color="primary" (click)="moveNext()" [disabled]="!termsAndConditions">Next</button>
             </div>
         </mat-card>
     </mat-step>

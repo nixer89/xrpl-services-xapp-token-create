@@ -778,6 +778,8 @@ export class CreateToken implements OnInit, OnDestroy {
 
         let txInfo = await this.xummApi.validateTransaction(message.payload_uuidv4);
 
+        this.infoLabel = JSON.stringify(txInfo);
+
         if(txInfo && txInfo.success && txInfo.account && txInfo.testnet == this.isTestMode) {
           if(this.issuerAccount === txInfo.account) {
             this.weHaveIssued = true;
