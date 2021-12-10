@@ -112,8 +112,10 @@ export class CreateToken implements OnInit, OnDestroy {
   alreadyIssuedCurrencies:string[] = [];
   hasOutgoingTrustlines:boolean = false;
 
-  title: string = "Xumm Community xApp";
+  title: string = "XRPL Services xApp";
   tw: TypeWriter
+
+  termsAndConditions:boolean = false;
 
   @ViewChild('stepper') stepper: MatStepper;
 
@@ -1002,6 +1004,26 @@ export class CreateToken implements OnInit, OnDestroy {
       clipboard(this.getTrustlineLink());
       this.snackBar.dismiss();
       this.snackBar.open("TrustLine link copied to clipboard!", null, {panelClass: 'snackbar-success', duration: 3000, horizontalPosition: 'center', verticalPosition: 'bottom'});
+    }
+  }
+
+  openTermsAndConditions() {
+    if (typeof window.ReactNativeWebView !== 'undefined') {
+      //this.infoLabel = "opening sign request";
+      window.ReactNativeWebView.postMessage(JSON.stringify({
+        command: "openBrowser",
+        url: "https://xrpl.services/terms"
+      }));
+    }
+  }
+
+  openPrivacyPolicy() {
+    if (typeof window.ReactNativeWebView !== 'undefined') {
+      //this.infoLabel = "opening sign request";
+      window.ReactNativeWebView.postMessage(JSON.stringify({
+        command: "openBrowser",
+        url: "https://xrpl.services/privacy"
+      }));
     }
   }
 

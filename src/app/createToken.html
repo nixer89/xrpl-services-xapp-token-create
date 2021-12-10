@@ -1,15 +1,15 @@
 <div [class]="themeClass">
-  <mat-toolbar fxLayout="row" color="primary" style="background-color: rgb(48, 82, 255);"class="mat-elevation-z4">  
+  <mat-toolbar fxLayout="row" color="primary" style="background-color: #002c85;"class="mat-elevation-z4">  
     <mat-toolbar-row>
       <div fxLayout="row" fxLayoutGap="0.5em" fxLayoutAlign="start center">
-        <img src="../assets/topbar_logo.png" width="50px" height="50px" alt="Xumm Community Logo">
+        <img src="../assets/topbar_logo.png" width="50px" height="50px" alt="XRP Ledger Services Logo">
         <label style="font-weight: bold;">{{title}}</label>  
       </div>
     </mat-toolbar-row>
   </mat-toolbar>
 
   <mat-card class="mat-card-red" *ngIf="errorLabel" fxLayout="column" fxLayoutGap="0.5em;">
-    <label>Sorry that this error happened! Please copy the following error and send it to @XummCommunity on twitter or via mail to: XummCommunity@gmail.com . Thanks for your help!</label>
+    <label>Sorry that this error happened! Please copy the following error and send it to @XrplServices on twitter or via mail to: info@xrpl.services . Thanks for your help!</label>
     <label>&nbsp;</label>
     <label class="break-words" (click)="copyError()">{{errorLabel}}</label>
     <button mat-button class="xumm-grey-background" aria-label="Copy Error" (click)="copyError()">
@@ -42,7 +42,18 @@
 
             <label>The 50 XRP payment is NOT refundable.</label>
 
-            <label>Click 'Next' and follow the instructions if you are ready and you know what you are doing!</label>
+            <label>Accept the Terms and Conditions, then click 'Next' and follow the instructions if you are ready and you know what you are doing!</label>
+
+            <div fxLayout="row">
+              <mat-checkbox [(ngModel)]="termsAndConditions" (change)="checkChanges()">
+                Please read and accept the
+                <label class="xumm-orange" (click)="openTermsAndConditions()"> Terms & Conditions </label>
+                and the
+                <label class="xumm-orange" (click)="openPrivacyPolicy()"> Privacy Policy </label>
+                before you can continue.
+              </mat-checkbox>
+            </div>
+            
             <div style="padding-top: 0.5em;">
                 <button mat-raised-button color="primary" (click)="moveNext()">Next</button>
             </div>
