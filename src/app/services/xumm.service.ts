@@ -8,7 +8,7 @@ export class XummService {
     constructor(private app: AppService) {}
 
     isTestMode = false;
-    xummBackendURL = this.isTestMode ? 'http://localhost:4001' : 'https://api.xumm.community';
+    xummBackendURL = this.isTestMode ? 'http://localhost:4001' : 'https://api.xrpl.services';
 
     async submitPayload(payload:GenericBackendPostRequest): Promise<XummTypes.XummPostPayloadResponse> {
         try {

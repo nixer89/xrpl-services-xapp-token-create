@@ -37,7 +37,7 @@
               <label>If you just want to play around and test this xApp, you can issue a token on the XRP Ledger TEST network. No KYC is required there. Below you will find a link which lets you setup a testnet account with 1000 XRP.</label>
               <label>Once the below guide (link) was successfully walked through (you need 2 test net accounts!), simply open the xApp again.</label>
               <label>&nbsp;</label>
-              <label class="xumm-orange" style="text-decoration: underline;" (click)="openTestnetInBrowser()">https://xumm.community/tools -> 'Testnet Account'</label>
+              <label class="xumm-orange" style="text-decoration: underline;" (click)="openTestnetInBrowser()">https://xrpl.services/tools -> 'Testnet Account'</label>
             </mat-card>
 
             <label>The 50 XRP payment is NOT refundable.</label>
@@ -190,7 +190,7 @@
               <mat-card class="mat-card-orange" fxLayout="column">
                 <label>Attention! You already created this token. If you want to issue <b>more</b> of your token, please visit:</label>
                 <div fxLayout="row" fxLayoutGap="0.3em;" fxLayoutAlign="start center">
-                  <label class="break-words" (click)="copyTokenLink()">https://xumm.community/tokens</label>
+                  <label class="break-words" (click)="copyTokenLink()">https://xrpl.services/tokens</label>
                   <button mat-icon-button aria-label="Copy Token Link" (click)="copyTokenLink()">
                     <mat-icon style="font-size: 16px; width: fit-content; height: fit-content;">content_copy</mat-icon>
                   </button>
@@ -365,7 +365,7 @@
                 <input matInput type="text" [(ngModel)]="memoInput" placeholder="Memo" aria-label="Token Creation Memo">
             </mat-form-field>
           </mat-card>
-          <label>Please keep in mind that this is just an initial issuing. You can issue more of your Token at any time through the website https://xumm.community/tokens -> "Issue more if your created Token".</label>
+          <label>Please keep in mind that this is just an initial issuing. You can issue more of your Token at any time through the website https://xrpl.services/tokens -> "Issue more if your created Token".</label>
           <mat-checkbox [(ngModel)]="checkBoxIssuingText" [ngClass]="(checkBoxIssuingText ? 'xumm-green': 'xumm-red')" [disabled]="loadingData || weHaveIssued">I have read and understand the above text. Let me issue now!</mat-checkbox>
           <div fxLayoutAlign="start center">
             <button mat-raised-button color="primary" (click)="issueToken()" [disabled]="!checkBoxIssuingText || loadingData || weHaveIssued">
@@ -408,11 +408,11 @@
             </button>
           </div>
           <label>&nbsp;</label>
-          <label>Shortly, in about 30-60 minutes, your Token will also be visible on the https://xumm.community/tokens list.</label>
+          <label>Shortly, in about 30-60 minutes, your Token will also be visible on the https://xrpl.services/tokens list.</label>
           <label>&nbsp;</label>
           <div fxLayout="column">
             <label>If you want to blackhole your Issuer account, please visit </label>
-            <label (click)="openBlackholeLink()">https://xumm.community/tokens</label>
+            <label (click)="openBlackholeLink()">https://xrpl.services/tokens</label>
             <label> and find the section "Blackhole Account".</label>
           </div>
           

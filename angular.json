@@ -3,7 +3,7 @@
   "version": 1,
   "newProjectRoot": "projects",
   "projects": {
-    "xumm-xapp-token-create": {
+    "xrpl-services-xapp-token-create": {
       "projectType": "application",
       "schematics": {},
       "root": "",
@@ -13,7 +13,7 @@
         "build": {
           "builder": "@angular-devkit/build-angular:browser",
           "options": {
-            "outputPath": "dist/xumm-xapp-token-create",
+            "outputPath": "dist/xrpl-services-xapp-token-create",
             "index": "src/index.html",
             "main": "src/main.ts",
             "polyfills": "src/polyfills.ts",
@@ -68,18 +68,18 @@
         "serve": {
           "builder": "@angular-devkit/build-angular:dev-server",
           "options": {
-            "browserTarget": "xumm-xapp-token-create:build"
+            "browserTarget": "xrpl-services-xapp-token-create:build"
           },
           "configurations": {
             "production": {
-              "browserTarget": "xumm-xapp-token-create:build:production"
+              "browserTarget": "xrpl-services-xapp-token-create:build:production"
             }
           }
         },
         "extract-i18n": {
           "builder": "@angular-devkit/build-angular:extract-i18n",
           "options": {
-            "browserTarget": "xumm-xapp-token-create:build"
+            "browserTarget": "xrpl-services-xapp-token-create:build"
           }
         },
         "test": {
@@ -117,16 +117,16 @@
           "builder": "@angular-devkit/build-angular:protractor",
           "options": {
             "protractorConfig": "e2e/protractor.conf.js",
-            "devServerTarget": "xumm-xapp-token-create:serve"
+            "devServerTarget": "xrpl-services-xapp-token-create:serve"
           },
           "configurations": {
             "production": {
-              "devServerTarget": "xumm-xapp-token-create:serve:production"
+              "devServerTarget": "xrpl-services-xapp-token-create:serve:production"
             }
           }
         }
       }
     }
   },
-  "defaultProject": "xumm-xapp-token-create"
+  "defaultProject": "xrpl-services-xapp-token-create"
 }
