@@ -629,8 +629,8 @@ export class CreateToken implements OnInit, OnDestroy {
             this.snackBar.open("You signed with the wrong account. Please sign with Issuer Account!", null, {panelClass: 'snackbar-failed', duration: 5000, horizontalPosition: 'center', verticalPosition: 'top'});
           }
         } else {
-          //tx not successfull
-          this.snackBar.open("Transaction not successfull!", null, {panelClass: 'snackbar-failed', duration: 5000, horizontalPosition: 'center', verticalPosition: 'top'});
+          //tx not successful
+          this.snackBar.open("Transaction not successful!", null, {panelClass: 'snackbar-failed', duration: 5000, horizontalPosition: 'center', verticalPosition: 'top'});
         }
       }
     } catch(err) {
@@ -722,7 +722,7 @@ export class CreateToken implements OnInit, OnDestroy {
           }
         } else {
           this.recipientTrustlineSet = false;
-          this.snackBar.open("Transaction not successfull!", null, {panelClass: 'snackbar-failed', duration: 5000, horizontalPosition: 'center', verticalPosition: 'top'});
+          this.snackBar.open("Transaction not successful!", null, {panelClass: 'snackbar-failed', duration: 5000, horizontalPosition: 'center', verticalPosition: 'top'});
         }
       }
     } catch(err) {
@@ -789,7 +789,7 @@ export class CreateToken implements OnInit, OnDestroy {
           }
         } else {
           this.weHaveIssued = false;
-          this.snackBar.open("Transaction not successfull!", null, {panelClass: 'snackbar-failed', duration: 5000, horizontalPosition: 'center', verticalPosition: 'top'});
+          this.snackBar.open("Transaction not successful!", null, {panelClass: 'snackbar-failed', duration: 5000, horizontalPosition: 'center', verticalPosition: 'top'});
         }
       }
     } catch(err) {
@@ -839,7 +839,7 @@ export class CreateToken implements OnInit, OnDestroy {
           }
         } else {
           await this.loadAccountDataIssuer(this.issuerAccount);
-          this.snackBar.open("Transaction not successfull!", null, {panelClass: 'snackbar-failed', duration: 5000, horizontalPosition: 'center', verticalPosition: 'top'});
+          this.snackBar.open("Transaction not successful!", null, {panelClass: 'snackbar-failed', duration: 5000, horizontalPosition: 'center', verticalPosition: 'top'});
         }
       }
     } catch(err) {

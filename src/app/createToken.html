@@ -271,8 +271,8 @@
             </div>
             
             <div fxLayout="column">
-              <mat-card *ngIf="!loadingData && !paymentFound && paymentStarted && !paymentSuccessfull" class="mat-card-red">Your payment was not successfull on the XRP Ledger {{isTestMode ? 'TEST' : 'MAIN'}} net.</mat-card>
-              <mat-card *ngIf="!loadingData && paymentStarted && !paymentFound && paymentSuccessfull" class="mat-card-green">Payment successfull! You can now issue your token!</mat-card>
+              <mat-card *ngIf="!loadingData && !paymentFound && paymentStarted && !paymentSuccessfull" class="mat-card-red">Your payment was not successful on the XRP Ledger {{isTestMode ? 'TEST' : 'MAIN'}} net.</mat-card>
+              <mat-card *ngIf="!loadingData && paymentStarted && !paymentFound && paymentSuccessfull" class="mat-card-green">Payment successful! You can now issue your token!</mat-card>
               <mat-card *ngIf="!loadingData && !paymentStarted && paymentFound && !paymentSuccessfull" class="mat-card-green">Payment found! You can now issue your token!</mat-card>
             </div>
           </div>
