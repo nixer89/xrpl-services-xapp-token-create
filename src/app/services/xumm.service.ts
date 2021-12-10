@@ -93,7 +93,7 @@ export class XummService {
         }
     }
 
-    async checkTimedPayment(payloadId:string): Promise<TransactionValidation> {
+    async checkPayment(payloadId:string): Promise<TransactionValidation> {
         try {
             return this.app.get(this.xrplServicesBackendURL+"/api/v1/check/payment/"+payloadId);
         } catch(err) {

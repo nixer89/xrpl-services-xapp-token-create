@@ -332,7 +332,7 @@ export class CreateToken implements OnInit, OnDestroy {
     
         this.paymentStarted = true;
 
-        let txInfo = await this.xummApi.checkTimedPayment(message.payload_uuidv4);
+        let txInfo = await this.xummApi.checkPayment(message.payload_uuidv4);
           //console.log('The generic dialog was closed: ' + JSON.stringify(info));
 
         if(txInfo && txInfo.success && txInfo.account && txInfo.testnet == this.isTestMode) {
