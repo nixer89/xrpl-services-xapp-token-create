@@ -653,7 +653,7 @@ export class CreateToken implements OnInit, OnDestroy {
     if(this.limit) {
 
       if(!this.limit.includes("e")) {
-        this.validLimit = !(/[^.0-9]|\d*\.\d{16,}/.test(this.limit));
+        this.validLimit = /^[1-9]\d*(\.\d{1,15})?$/.test(this.limit);
       } else {
         //console.log("checking scientific notation");
         try {

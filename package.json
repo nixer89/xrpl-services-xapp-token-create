@@ -1,6 +1,6 @@
 {
   "name": "xrpl-services-xapp-token-create",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "scripts": {
     "ng": "ng",
     "start": "ng serve --port 4202 --open",
