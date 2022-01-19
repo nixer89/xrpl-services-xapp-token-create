@@ -141,15 +141,15 @@ export class CreateToken implements OnInit, OnDestroy {
         if(ottData && ottData.account && ottData.accountaccess == 'FULL') {
           this.issuerAccount = ottData.account;
           await this.loadAccountDataIssuer(this.issuerAccount);
+          this.loadingData = false;
 
           //await this.loadAccountData(ottData.account); //false = ottResponse.node == 'TESTNET' 
         } else {
+          this.loadingData = false;
           //this.issuer_account_info = "no account";
         }
 
         this.infoLabel = JSON.stringify(this.issuer_account_info);
-
-        this.loadingData = false;
       }
 
 
@@ -187,7 +187,7 @@ export class CreateToken implements OnInit, OnDestroy {
 
     await this.loadFeeReserves();
 
-    this.tw = new TypeWriter(["Xumm Community xApp", "created by nixerFFM", "Xumm Community xApp"], t => {
+    this.tw = new TypeWriter(["XRPL Services xApp", "created by nixerFFM", "XRPL Services xApp"], t => {
       this.title = t;
     })
 

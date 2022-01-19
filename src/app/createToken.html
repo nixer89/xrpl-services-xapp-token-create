@@ -17,11 +17,17 @@
     </button>
   </mat-card>
 
+  <mat-card class="mat-card-red" *ngIf="!loadingData && !issuer_account_info" fxLayout="column" fxLayoutGap="0.5em;">
+    <label>You opened the xApp with an account you don't have full access to. (Read only)</label>
+    <label>&nbsp;</label>
+    <label>Please close this xApp, navigate to the home screen and switch to the account you want to issue your token from. (Needs to have 'Full Access') Then open the xApp again.</label>
+  </mat-card>
+
   <!--label *ngIf="infoLabel" style="color: red">{{infoLabel}}</label><br><br>
   <label *ngIf="infoLabel2" style="color: red">{{infoLabel2}}</label>
   <label *ngIf="infoLabel3" style="color: red">{{infoLabel3}}</label-->
 
-  <mat-vertical-stepper linear #stepper class="theme-background">
+  <mat-vertical-stepper linear #stepper class="theme-background" *ngIf="issuer_account_info">
     <mat-step completed="false" editable="false">
         <mat-card fxLayout="column" fxLayoutGap="0.5em">
             <ng-template matStepLabel>Description</ng-template>
