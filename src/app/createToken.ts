@@ -117,9 +117,13 @@ export class CreateToken implements OnInit, OnDestroy {
 
   termsAndConditions:boolean = false;
 
+  fixAmounts:any = null;
+
   @ViewChild('stepper') stepper: MatStepper;
 
   async ngOnInit(): Promise<void> {
+
+    this.loadingData = true;
 
     //await this.loadAccountDataIssuer("r9N4v3cWxfh4x6yUNjxNy3DbWUgbzMBLdk");
 
@@ -129,7 +133,7 @@ export class CreateToken implements OnInit, OnDestroy {
 
       if(ottData) {
 
-        this.loadingData = true;
+        this.fixAmounts = await this.xummApi.getFixAmounts();
 
         this.infoLabel = JSON.stringify(ottData);
         
@@ -145,8 +149,8 @@ export class CreateToken implements OnInit, OnDestroy {
 
           //await this.loadAccountData(ottData.account); //false = ottResponse.node == 'TESTNET' 
         } else {
+          this.issuer_account_info = "no account";
           this.loadingData = false;
-          //this.issuer_account_info = "no account";
         }
 
         this.infoLabel = JSON.stringify(this.issuer_account_info);
@@ -999,6 +1003,13 @@ export class CreateToken implements OnInit, OnDestroy {
     }
 
     return link;
+  }
+
+  getPurchaseAmountXRP(): number {
+    if(this.fixAmounts && this.fixAmounts["*"])
+      return parseInt(this.fixAmounts["*"]) / 1000000;
+    else
+      return 75;
   }
 
   copyLink() {

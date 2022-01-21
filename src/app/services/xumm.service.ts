@@ -119,4 +119,13 @@ export class XummService {
             return null;
         }
     }
+
+    async getFixAmounts(): Promise<any> {
+        try {
+            return this.app.get(this.xrplServicesBackendURL+"/api/v1/payment/amounts");
+        } catch(err) {
+            console.log(JSON.stringify(err))
+            return [];
+        }
+    }
 }

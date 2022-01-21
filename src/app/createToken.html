@@ -17,7 +17,16 @@
     </button>
   </mat-card>
 
-  <mat-card class="mat-card-red" *ngIf="!loadingData && !issuer_account_info" fxLayout="column" fxLayoutGap="0.5em;">
+  <mat-card class="mat-card-orange floatcenter" *ngIf="loadingData && !issuer_account_info" fxLayout="column" fxLayoutGap="0.5em;" style="margin: 0.5em">
+    <label>Loading some things...</label>
+    <mat-progress-spinner color="primary" mode="indeterminate" diameter=25></mat-progress-spinner>
+  </mat-card>
+
+  <div *ngIf="!issuer_account_info || loadingData" fxLayoutAlign="center center">
+    
+  </div>
+
+  <mat-card class="mat-card-red" *ngIf="!loadingData && (!issuer_account_info || !issuer_account_info.Account)" fxLayout="column" fxLayoutGap="0.5em;">
     <label>You opened the xApp with an account you don't have full access to. (Read only)</label>
     <label>&nbsp;</label>
     <label>Please close this xApp, navigate to the home screen and switch to the account you want to issue your token from. (Needs to have 'Full Access') Then open the xApp again.</label>
@@ -27,7 +36,7 @@
   <label *ngIf="infoLabel2" style="color: red">{{infoLabel2}}</label>
   <label *ngIf="infoLabel3" style="color: red">{{infoLabel3}}</label-->
 
-  <mat-vertical-stepper linear #stepper class="theme-background" *ngIf="issuer_account_info">
+  <mat-vertical-stepper linear #stepper class="theme-background" *ngIf="issuer_account_info && issuer_account_info.Account">
     <mat-step completed="false" editable="false">
         <mat-card fxLayout="column" fxLayoutGap="0.5em">
             <ng-template matStepLabel>Description</ng-template>
@@ -37,8 +46,8 @@
             <label>The issuer account as well as the recipient account needs to be in the same XUMM Wallet app, on the same device. It is not possible to use two devices.</label>
             <mat-card class="mat-card-orange" fxLayout="column">
               <label>To create your token, KYC for the issuer account is required.</label>
-              <label>We will also charge you 50 XRP to use this service</label>
-              <label>So please make sure you have at least 50 XRP available balance in the issuer and {{ownerReserve/1000000}} XRP in the recipient account!</label>
+              <label>We will also charge you {{getPurchaseAmountXRP()}} XRP to use this service</label>
+              <label>So please make sure you have at least {{getPurchaseAmountXRP()}} XRP available balance in the issuer and {{ownerReserve/1000000}} XRP in the recipient account!</label>
               <label>&nbsp;</label>
               <label>If you just want to play around and test this xApp, you can issue a token on the XRP Ledger TEST network. No KYC is required there. Below you will find a link which lets you setup a testnet account with 1000 XRP.</label>
               <label>Once the below guide (link) was successfully walked through (you need 2 test net accounts!), simply open the xApp again.</label>
@@ -46,7 +55,7 @@
               <label class="xumm-orange" style="text-decoration: underline;" (click)="openTestnetInBrowser()">https://xrpl.services/tools -> 'Testnet Account'</label>
             </mat-card>
 
-            <label>The 50 XRP payment is NOT refundable.</label>
+            <label>The {{getPurchaseAmountXRP()}} XRP payment is NOT refundable.</label>
 
             <label>Accept the Terms and Conditions, then click 'Next' and follow the instructions if you are ready and you know what you are doing!</label>
 
@@ -86,7 +95,8 @@
             <button mat-raised-button color="primary" (click)="signInWithIssuerAccount()" [disabled]="loadingData">Sign in with issuer</button>
 
             <mat-card *ngIf="issuerAccount && signInAccount && issuerAccount != signInAccount && !loadingData" class="mat-card-red">
-              <label>The account you signed the transaction with does not match the account you opened the xApp with! Please sign in with the account shown above!</label>
+              <label>The account you signed the transaction with does not match the account you opened the xApp with! Please sign in with the account shown above.</label>
+              <label>You can also change the issuer account: close the xApp, change the account in the XUMM 'Home' screen to the one you want to issue the token with, open the xApp again.</label>
             </mat-card>
           </div>
 
@@ -101,8 +111,8 @@
               <label>This account is not activated on {{isTestMode ? 'Testnet' : 'Mainnet'}}.</label>
             </mat-card>
 
-            <mat-card *ngIf="accountHasKYC && issuer_account_info && issuer_account_info.Balance && getAvailableBalanceIssuer() < 50 && !paymentFound && !loadingData" class="mat-card-red" fxLayout="column">
-              <label>This account does not have enough balance to create a Token. At least 50 XRP should be available!</label>
+            <mat-card *ngIf="accountHasKYC && issuer_account_info && issuer_account_info.Balance && getAvailableBalanceIssuer() < getPurchaseAmountXRP() && !paymentFound && !loadingData" class="mat-card-red" fxLayout="column">
+              <label>This account does not have enough balance to create a Token. At least {{getPurchaseAmountXRP()}} XRP should be available!</label>
               <label>Current available balance: {{getAvailableBalanceIssuer()}} XRP.</label>
             </mat-card>
 
@@ -119,7 +129,7 @@
           </div>
 
           <div style="padding-top: 0.5em;" fxLayoutGap="0.5em">
-              <button mat-raised-button color="primary" (click)="moveNext()" [disabled]="!paymentChecked || !accountHasKYC|| !issuer_account_info || !issuer_account_info.Account || loadingData || (getAvailableBalanceIssuer() < 50 && !paymentFound) || hasOutgoingTrustlines">Next</button>
+              <button mat-raised-button color="primary" (click)="moveNext()" [disabled]="!paymentChecked || !accountHasKYC|| !issuer_account_info || !issuer_account_info.Account || loadingData || (getAvailableBalanceIssuer() < getPurchaseAmountXRP() && !paymentFound) || hasOutgoingTrustlines">Next</button>
               <button mat-raised-button class="xumm-grey-background" (click)="moveBack()" [disabled]="loadingData">Back</button>
           </div>
       </mat-card>
@@ -133,11 +143,11 @@
           <label>&nbsp;</label>
           <mat-checkbox [(ngModel)]="checkBoxTwoAccounts" [ngClass]="(checkBoxTwoAccounts ? 'xumm-green': 'xumm-red')">You have the keys for two accounts in your XUMM app (one device). One for issuing and one for receiving your Token.</mat-checkbox>
           <mat-checkbox [(ngModel)]="checkBoxIssuerInfo" [ngClass]="(checkBoxIssuerInfo ? 'xumm-green': 'xumm-red')">It is recommended that the issuer account does NOT have outgoing trust lines! Please use an account as issuer account that you don't access/use regulary.</mat-checkbox>
-          <mat-checkbox [(ngModel)]="checkBoxFiveXrp" [ngClass]="(checkBoxFiveXrp ? 'xumm-green': 'xumm-red')">You accept paying 50 XRP for this service.</mat-checkbox>
-          <mat-checkbox [(ngModel)]="checkBoxSufficientFunds" [ngClass]="(checkBoxSufficientFunds ? 'xumm-green': 'xumm-red')">The issuing and recipient accounts have enough funds. (Issuer: 50 XRP & Recipient: 2 XRP)</mat-checkbox>
+          <mat-checkbox [(ngModel)]="checkBoxFiveXrp" [ngClass]="(checkBoxFiveXrp ? 'xumm-green': 'xumm-red')">You accept paying {{getPurchaseAmountXRP()}} XRP for this service.</mat-checkbox>
+          <mat-checkbox [(ngModel)]="checkBoxSufficientFunds" [ngClass]="(checkBoxSufficientFunds ? 'xumm-green': 'xumm-red')">The issuing and recipient accounts have enough funds. (Issuer: {{getPurchaseAmountXRP()}} XRP & Recipient: 2 XRP)</mat-checkbox>
           <mat-checkbox [(ngModel)]="checkBoxNetwork" [ngClass]="(checkBoxNetwork ? 'xumm-green': 'xumm-red')">Your XUMM app is connected to the {{isTestMode ? 'TEST' : 'MAIN'}} network. That is where I want to create my token!</mat-checkbox>
           <mat-checkbox [(ngModel)]="checkBoxNoLiability" [ngClass]="(checkBoxNoLiability ? 'xumm-green': 'xumm-red')">We take no liability if you are not able to issue your own Token. The payment is not refundable. Only proceed if you know what you are are doing!</mat-checkbox>
-          <mat-checkbox [(ngModel)]="checkBoxDisclaimer" [ngClass]="(checkBoxDisclaimer ? 'xumm-green': 'xumm-red')">If you are going to issue your Token for commercial use, we recommend to NOT use this tool. We are not liable for any regulatory implications, depending on the jurisdiction you live in.</mat-checkbox>
+          <mat-checkbox [(ngModel)]="checkBoxDisclaimer" [ngClass]="(checkBoxDisclaimer ? 'xumm-green': 'xumm-red')">You confirm that you are a private person issuing a token. You confirm that you are not a company issuing this token for commercial use. Also we are not liable for any regulatory implications, depending on the jurisdiction you live in.</mat-checkbox>
           <mat-checkbox [(ngModel)]="checkBoxDisclaimer2" [ngClass]="(checkBoxDisclaimer2 ? 'xumm-green': 'xumm-red')">Creating a token (Cryptocurrency) or selling such a token might be illegal in your country. You accept the underlying risks and you did your research about regulations in your country before creating a Token. We can not be held accountable in any way.</mat-checkbox>
 
           <div style="padding-top: 0.5em;" fxLayoutGap="0.5em">
@@ -271,7 +281,7 @@
               <!--mat-card class="mat-card-orange">We could not find any valid previous payment for the account {{issuer_account_info.Account}}.</mat-card-->
               <div fxLayoutAlign="start center">
                 <button mat-raised-button color="primary" [disabled]="loadingData || !checkBoxAccountsPreselected" (click)="payForToken()">
-                  Pay 50 XRP
+                  Pay {{getPurchaseAmountXRP()}} XRP
                 </button>
               </div>
             </div>
