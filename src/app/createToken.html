@@ -22,10 +22,6 @@
     <mat-progress-spinner color="primary" mode="indeterminate" diameter=25></mat-progress-spinner>
   </mat-card>
 
-  <div *ngIf="!issuer_account_info || loadingData" fxLayoutAlign="center center">
-    
-  </div>
-
   <mat-card class="mat-card-red" *ngIf="!loadingData && (!issuer_account_info || !issuer_account_info.Account)" fxLayout="column" fxLayoutGap="0.5em;">
     <label>You opened the xApp with an account you don't have full access to. (Read only)</label>
     <label>&nbsp;</label>

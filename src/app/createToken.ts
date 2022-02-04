@@ -325,6 +325,9 @@ export class CreateToken implements OnInit, OnDestroy {
         },
         custom_meta: {
           instruction: "Please pay with the account you want to issue your Token from! (Issuer Account)",
+          blob: {
+            purpose: "Token Creation Service"
+          }
         }
       }
     }
