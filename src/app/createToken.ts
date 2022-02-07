@@ -1043,6 +1043,16 @@ export class CreateToken implements OnInit, OnDestroy {
     }
   }
 
+  openVanityApp() {
+    if (typeof window.ReactNativeWebView !== 'undefined') {
+      //this.infoLabel = "opening sign request";
+      window.ReactNativeWebView.postMessage(JSON.stringify({
+        command: "openBrowser",
+        url: "https://xumm.app/detect/xapp:xumm.vanity"
+      }));
+    }
+  }
+
   close() {
     if (typeof window.ReactNativeWebView !== 'undefined') {
       window.ReactNativeWebView.postMessage(JSON.stringify({

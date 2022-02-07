@@ -58,11 +58,24 @@
             <div fxLayout="row">
               <mat-checkbox [(ngModel)]="termsAndConditions">
                 Please read and accept the
-                <label class="xumm-orange" (click)="openTermsAndConditions()"> Terms & Conditions </label>
+                <label class="xumm-orange" (click)="openTermsAndConditions()" style="text-decoration: underline;"> Terms & Conditions </label>
                 and the
-                <label class="xumm-orange" (click)="openPrivacyPolicy()"> Privacy Policy </label>
+                <label class="xumm-orange" (click)="openPrivacyPolicy()" style="text-decoration: underline;"> Privacy Policy </label>
                 before you can continue.
               </mat-checkbox>
+            </div>
+            
+            <div *ngIf="termsAndConditions" fxLayout="column" fxLayoutGap="0.3em" style="margin-bottom: 1.5em;">
+              <mat-card class="mat-card-orange" fxLayout="column">
+                <label>Before you start, you might consider getting yourself a 'vanity' address for your new token.</label>
+                <label>Wouldn't it be cool if your XRP Ledger address also reflects your token name? As example, if your token name is 'Beer', your XRP Ledger address could start with:</label>
+                <label>&nbsp;</label>
+                <label><b>'<code>rBeer</code>...'</b></label>
+                <label>&nbsp;</label>
+                <label style="text-decoration: underline;" (click)="openVanityApp()">Click here to explore the posibilites! (Vanity xApp)</label>
+                <label>&nbsp;</label>
+                <label>You can then come back here with your new vanity address and select it as issuer account or receiver/distribution account!</label>
+              </mat-card>
             </div>
 
             <div style="padding-top: 0.5em;">
