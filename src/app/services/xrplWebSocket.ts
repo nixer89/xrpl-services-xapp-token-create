@@ -6,7 +6,7 @@ export class XRPLWebsocket {
     
     originalTestModeValue:boolean = false;
     mainNodes:string[] = ['wss://xrplcluster.com','wss://s2.ripple.com',];
-    testNodes:string[] = ['wss://testnet.xrpl-labs.com', 'wss://s.altnet.rippletest.net'];
+    testNodes:string[] = ['wss://s.altnet.rippletest.net','wss://testnet.xrpl-labs.com'];
     mainFirst:boolean = true;
     testFirst:boolean = true;
     errorsToSwitch:string[] = ["amendmentBlocked", "failedToForward", "invalid_API_version", "noClosed", "noCurrent", "noNetwork", "tooBusy"]

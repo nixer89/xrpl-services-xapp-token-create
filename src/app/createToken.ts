@@ -54,6 +54,8 @@ export class CreateToken implements OnInit, OnDestroy {
 
   checkBoxAccountsPreselected:boolean = false;
 
+  checkBoxFeeBurned:boolean = false;
+
   issuer_account_info:any = null;
   recipient_account_info:any;
   isTestMode:boolean = false;
@@ -118,6 +120,8 @@ export class CreateToken implements OnInit, OnDestroy {
   termsAndConditions:boolean = false;
 
   fixAmounts:any = null;
+
+  loadingAccountTransactions:boolean = false;
 
   @ViewChild('stepper') stepper: MatStepper;
 
@@ -319,7 +323,7 @@ export class CreateToken implements OnInit, OnDestroy {
           Account: this.issuerAccount,
           TransactionType: "Payment",
           Memos : [
-                    {Memo: {MemoType: Buffer.from("[https://xrpl.services]-Memo", 'utf8').toString('hex').toUpperCase(), MemoData: Buffer.from("Payment for creating Token via xApp: '"+this.currencyCode.trim()+"'\n" , 'utf8').toString('hex').toUpperCase()}},
+                    {Memo: {MemoType: Buffer.from("Burning-Payment", 'utf8').toString('hex').toUpperCase(), MemoData: Buffer.from(JSON.stringify({issuer: this.issuerAccount.trim(),currency: normalizer.getCurrencyCodeForXRPL(this.currencyCode.trim())}) , 'utf8').toString('hex').toUpperCase()}},
                     {Memo: {MemoType: Buffer.from("KYC-ACCOUNT", 'utf8').toString('hex').toUpperCase(), MemoData: Buffer.from(this.kycAccount , 'utf8').toString('hex').toUpperCase()}}
                   ]
         },
@@ -360,68 +364,68 @@ export class CreateToken implements OnInit, OnDestroy {
 
   async signInWithIssuerAccount() {
     this.loadingData = true;
-    //setting up xumm payload and waiting for websocket
-    let backendPayload:GenericBackendPostRequest = {
-      options: {
-          web: false,
-          signinToValidate: true,
-          pushDisabled: true
-      },
-      payload: {
-          txjson: {
-            Account: this.issuerAccount,         
-            TransactionType: "SignIn"
-          },
-          custom_meta: {
-            instruction: "Please sign with the issuer account!",
-            blob: { source: "Issuer"}
-          }
-      }
-    }
 
     try {
-      let message:any = await this.waitForTransactionSigning(backendPayload);
+      //setting up xumm payload and waiting for websocket
+      let backendPayload:GenericBackendPostRequest = {
+        options: {
+            web: false,
+            signinToValidate: true,
+            pushDisabled: true
+        },
+        payload: {
+            txjson: {
+              Account: this.issuerAccount,         
+              TransactionType: "SignIn"
+            },
+            custom_meta: {
+              instruction: "Please sign with the issuer account!",
+              blob: { source: "Issuer"}
+            }
+        }
+      }
 
-      //this.infoLabel = "label 1 received: " + JSON.stringify(message);
+      try {
+        let message:any = await this.waitForTransactionSigning(backendPayload);
 
-      if(message && message.payload_uuidv4) {
+        //this.infoLabel = "label 1 received: " + JSON.stringify(message);
 
-        let checkPayment:TransactionValidation = await this.xummApi.checkSignIn(message.payload_uuidv4);
-        //this.infoLabel2 = "signInToValidateTimedPayment: " + JSON.stringify(checkPayment);
-        //console.log("login to validate payment: " + JSON.stringify(checkPayment));
+        if(message && message.payload_uuidv4) {
 
-        this.signInAccount = checkPayment.account;
+          let checkSignin:TransactionValidation = await this.xummApi.checkSignIn(message.payload_uuidv4);
+          //this.infoLabel2 = "signInToValidateTimedPayment: " + JSON.stringify(checkPayment);
+          //console.log("login to validate payment: " + JSON.stringify(checkPayment));
 
-        //if(checkPayment && checkPayment.success && checkPayment.testnet == this.isTestMode) {
-        //  this.paymentFound = true;
-        //} else if(checkPayment && checkPayment.account) {
-        //  this.paymentFound = false;
-        //}
+          this.signInAccount = checkSignin.account;
 
-        this.paymentChecked = true;
+          //if(checkPayment && checkPayment.success && checkPayment.testnet == this.isTestMode) {
+          //  this.paymentFound = true;
+          //} else if(checkPayment && checkPayment.account) {
+          //  this.paymentFound = false;
+          //}
+        }
+      } catch(err) {
+        this.handleError(err);
+      }
+
+      if(this.issuerAccount && this.signInAccount && this.issuerAccount === this.signInAccount) {
+        if(!this.isTestMode) {
+          let kycResponse:any = await this.xummApi.getKycStatus(this.issuerAccount)
+
+          this.infoLabel3 = JSON.stringify(kycResponse);
+
+          this.accountHasKYC = kycResponse && kycResponse.account === this.issuerAccount && kycResponse.kycApproved;
+
+          //save kyc account
+          if(kycResponse && kycResponse.kycApproved)
+            this.kycAccount = kycResponse.account
+        } else {
+          this.accountHasKYC = true;
+          this.kycAccount = this.issuerAccount;
+        }
       }
     } catch(err) {
-      this.handleError(err);
-    }
-
-    if(this.issuerAccount && this.signInAccount && this.issuerAccount === this.signInAccount) {
-      if(!this.isTestMode) {
-        let kycResponse:any = await this.xummApi.getKycStatus(this.issuerAccount)
-
-        this.infoLabel3 = JSON.stringify(kycResponse);
-
-        this.accountHasKYC = kycResponse && kycResponse.account === this.issuerAccount && kycResponse.kycApproved;
-
-        //save kyc account
-        if(kycResponse && kycResponse.kycApproved)
-          this.kycAccount = kycResponse.account
-      } else {
-        this.accountHasKYC = true;
-        this.kycAccount = this.issuerAccount;
-      }
-    } else {
-      this.paymentChecked = false;
-      this.paymentFound = false;
+      console.log("SOME ERROR HAPPENED. IGNORE?")
     }
 
     this.loadingData = false;
@@ -601,6 +605,147 @@ export class CreateToken implements OnInit, OnDestroy {
     }
   }
 
+  async loadTransactionsAndNext() {
+    this.loadIssuerTransactions(this.issuerAccount.trim());
+    this.moveNext();
+  }
+
+  async loadIssuerTransactions(issuerAccount: string) {
+    try {
+      this.loadingAccountTransactions = true;
+
+      let maxLoop = 10;
+
+      console.log("checking existing transactions")
+
+      //load account lines
+      let accountTransactions:any = {
+        command: "account_tx",
+        account: issuerAccount,
+        limit: 1000
+      }
+
+      //console.log("starting to read account lines!")
+      console.log("accountTransactions: " + JSON.stringify(accountTransactions));
+
+      let accountTx = await this.xrplWebSocket.getWebsocketMessage('issuer-tx', accountTransactions, this.isTestMode);
+
+      console.log("accountTx: " + JSON.stringify(accountTx));
+
+      if(accountTx?.result?.transactions) {
+        
+        let transactions:any[] = accountTx?.result?.transactions;
+
+        let marker = accountTx.result.marker;
+
+        for(let i = 0; i < transactions.length; i++) {
+          //scanning transactions for previous payments
+          console.log("looping through transactions")
+          try {
+            let transaction = transactions[i];
+
+            console.log("tx " + i + " : " + JSON.stringify(transaction));
+
+            console.log("payment amount to check for: " + JSON.stringify(this.getPurchaseAmountXRP()*1000000).toString());
+
+            if(transaction?.tx?.TransactionType === 'Payment' && transaction?.tx?.Destination === 'rrnpnAny58ak5Q6po8KQyZXnkHMAhyjhYx' && transaction?.tx?.Memos && transaction?.meta?.TransactionResult === "tesSUCCESS" && transaction?.meta?.delivered_amount === (this.getPurchaseAmountXRP()*1000000).toString()) {
+              //parse memos:
+              if(transaction.tx.Memos[0] && transaction.tx.Memos[0].Memo) {
+                let memoType = Buffer.from(transaction.tx.Memos[0].Memo.MemoType, 'hex').toString('utf8');
+                
+                console.log("memoType: " + JSON.stringify(memoType));
+
+                if(this.issuerAccount && this.currencyCode && memoType === 'Burning-Payment') {
+                  let memoData = JSON.parse(Buffer.from(transaction.tx.Memos[0].Memo.MemoData, 'hex').toString('utf8'));
+
+                  console.log("memoData: " + JSON.stringify(memoData));
+
+                  if(memoData.issuer === this.issuerAccount.trim() && memoData.currency === normalizer.getCurrencyCodeForXRPL(this.currencyCode.trim())) {
+                    this.paymentFound = true;
+                    this.paymentChecked = true;
+                    console.log("PAYMENT FOUND!");
+                    this.loadingAccountTransactions = false;
+                    return;
+                  }
+                }
+              }
+            }
+          } catch(err) {
+            //parse error, continue!
+          }
+        }
+
+        //console.log("marker: " + marker);
+        //console.log("LEDGER_INDEX : " + accountLines.result.ledger_index);
+
+
+        while(marker && maxLoop > 0 && !this.paymentFound && !this.paymentChecked) {
+            maxLoop--;
+            //console.log("marker: " + marker);
+            accountTransactions.marker = marker;
+            accountTransactions.ledger_index = accountTx.result.ledger_index;
+
+            //await this.xrplWebSocket.getWebsocketMessage("token-trasher", server_info, this.isTestMode);
+
+            accountTx = await this.xrplWebSocket.getWebsocketMessage('issuer-tx', accountTransactions, this.isTestMode);
+
+            marker = accountTx?.result?.marker;
+
+            if(accountTx?.result?.transactions) {
+              transactions = accountTx?.result?.transactions;
+
+              marker = accountTx.result.marker;
+      
+              for(let i = 0; i < transactions.length; i++) {
+                //scanning transactions for previous payments
+                try {
+                  let transaction = transactions[i];
+
+                  console.log("tx " + i + " : " + JSON.stringify(transaction));
+
+                  console.log("payment amount to check for: " + JSON.stringify(this.getPurchaseAmountXRP()*1000000).toString());
+
+                  if(transaction?.tx?.TransactionType === 'Payment' && transaction?.tx?.Memos && transaction?.meta?.TransactionResult === "tesSUCCESS" && transaction?.meta?.delivered_amount === (this.getPurchaseAmountXRP()*1000000).toString()) {
+                    //parse memos:
+                    if(transaction.tx.Memos[0] && transaction.tx.Memos[0].Memo) {
+                      let memoType = Buffer.from(transaction.tx.Memos[0].Memo.MemoType, 'hex').toString('utf8');
+                      
+                      console.log("memoType: " + JSON.stringify(memoType));
+
+                      if(this.issuerAccount && this.currencyCode && memoType === 'Burning-Payment') {
+                        let memoData = JSON.parse(Buffer.from(transaction.tx.Memos[0].Memo.MemoData, 'hex').toString('utf8'));
+
+                        console.log("memoData: " + JSON.stringify(memoData));
+
+                        if(memoData.issuer === this.issuerAccount.trim() && memoData.currency === normalizer.getCurrencyCodeForXRPL(this.currencyCode.trim())) {
+                          this.paymentFound = true;
+                          this.paymentChecked = true;
+                          console.log("PAYMENT FOUND!");
+                          this.loadingAccountTransactions = false;
+                          return;
+                        }
+                      }
+                    }
+                  }
+                } catch(err) {
+                  //parse error, continue!
+                }
+              }
+            } else {
+                marker = null;
+            }
+        }
+
+      }
+    } catch(err) {
+      console.log("ERR LOADING ACC TX")
+      console.log(JSON.stringify(err));
+    }
+
+    this.paymentChecked = true;
+    this.loadingAccountTransactions = false;
+  }
+
   async sendDefaultRipple() {
 
     this.loadingData = true;
@@ -650,6 +795,10 @@ export class CreateToken implements OnInit, OnDestroy {
   checkChangesCurrencyCode() {
     this.validCurrencyCode = this.currencyCode && /^[a-zA-Z\d?!@#$%^&*<>(){}[\]|]{3,20}$/.test(this.currencyCode) && this.currencyCode.toUpperCase() != "XRP";
     this.currencyAlreadyIssued = this.validCurrencyCode && this.alreadyIssuedCurrencies.includes(this.currencyCode.trim());
+    this.paymentStarted = false;
+    this.paymentSuccessfull = false;
+    this.paymentFound = false;
+    this.paymentChecked = false;
   }
 
   getCurrencyCodeForXRPL(): string {
@@ -1049,6 +1198,16 @@ export class CreateToken implements OnInit, OnDestroy {
       window.ReactNativeWebView.postMessage(JSON.stringify({
         command: "openBrowser",
         url: "https://xumm.app/detect/xapp:xumm.vanity"
+      }));
+    }
+  }
+
+  openBlackholeAccount() {
+    if (typeof window.ReactNativeWebView !== 'undefined') {
+      //this.infoLabel = "opening sign request";
+      window.ReactNativeWebView.postMessage(JSON.stringify({
+        command: "openBrowser",
+        url: "https://xrpscan.com/account/rrnpnAny58ak5Q6po8KQyZXnkHMAhyjhYx"
       }));
     }
   }
