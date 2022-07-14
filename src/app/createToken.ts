@@ -129,7 +129,12 @@ export class CreateToken implements OnInit, OnDestroy {
 
     this.loadingData = true;
 
-    //await this.loadAccountDataIssuer("r9N4v3cWxfh4x6yUNjxNy3DbWUgbzMBLdk");
+    /**
+    await this.loadAccountDataIssuer("r9N4v3cWxfh4x6yUNjxNy3DbWUgbzMBLdk");
+    this.issuerAccount = "r9N4v3cWxfh4x6yUNjxNy3DbWUgbzMBLdk";
+    this.signInAccount = "r9N4v3cWxfh4x6yUNjxNy3DbWUgbzMBLdk";
+    this.loadingData = false;
+     */
 
     this.ottReceived = this.ottChanged.subscribe(async ottData => {
       this.infoLabel = "ott received: " + JSON.stringify(ottData);
@@ -141,7 +146,7 @@ export class CreateToken implements OnInit, OnDestroy {
 
         this.infoLabel = JSON.stringify(ottData);
         
-        this.isTestMode = ottData.nodetype === 'TESTNET';
+        this.isTestMode = ottData.nodetype != 'MAINNET';
         //this.isTestMode = true;
 
         this.infoLabel2 = "changed mode to testnet: " + this.isTestMode;
@@ -1144,6 +1149,16 @@ export class CreateToken implements OnInit, OnDestroy {
     }
   }
 
+  openGlobalIdKYC() {
+    if (typeof window.ReactNativeWebView !== 'undefined') {
+      //this.infoLabel = "opening sign request";
+      window.ReactNativeWebView.postMessage(JSON.stringify({
+        command: "openBrowser",
+        url: "https://global.id/"
+      }));
+    }
+  }
+
   getTrustlineLink(): string {
     let link = "";
     if(this.getIssuer() && this.currencyCode && this.limit && this.weHaveIssued) {
@@ -1208,6 +1223,26 @@ export class CreateToken implements OnInit, OnDestroy {
       window.ReactNativeWebView.postMessage(JSON.stringify({
         command: "openBrowser",
         url: "https://xrpscan.com/account/rrnpnAny58ak5Q6po8KQyZXnkHMAhyjhYx"
+      }));
+    }
+  }
+
+  openXummDocs() {
+    if (typeof window.ReactNativeWebView !== 'undefined') {
+      //this.infoLabel = "opening sign request";
+      window.ReactNativeWebView.postMessage(JSON.stringify({
+        command: "openBrowser",
+        url: "https://xumm.readme.io/docs"
+      }));
+    }
+  }
+
+  openXummExample() {
+    if (typeof window.ReactNativeWebView !== 'undefined') {
+      //this.infoLabel = "opening sign request";
+      window.ReactNativeWebView.postMessage(JSON.stringify({
+        command: "openBrowser",
+        url: "https://oauth2-pkce-demo.xumm.dev/"
       }));
     }
   }

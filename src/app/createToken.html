@@ -33,6 +33,7 @@
   <label *ngIf="infoLabel3" style="color: red">{{infoLabel3}}</label-->
 
   <mat-vertical-stepper linear #stepper class="theme-background" *ngIf="issuer_account_info && issuer_account_info.Account">
+
     <mat-step completed="false" editable="false">
         <mat-card fxLayout="column" fxLayoutGap="0.5em">
             <ng-template matStepLabel>Description</ng-template>
@@ -110,10 +111,19 @@
           </div>
 
           <div *ngIf="issuerAccount && signInAccount && issuerAccount === signInAccount && !loadingData" style="padding-top: 0.5em;">
-            <mat-card *ngIf="issuer_account_info && !accountHasKYC && !loadingData" class="mat-card-red">
-              <label>Your account has not been KYC'd yet. We only allow you to issue a token on the MAIN network if you run through KYC with your account. To start KYC, please click the following link:</label>
+            <mat-card *ngIf="issuer_account_info && !accountHasKYC && !loadingData" class="mat-card-red" fxLayout="column">
+              <label>Your account has not been KYC'd yet. We only allow you to issue a token on the MAIN network if you run through KYC with your account.</label>
               <label>&nbsp;</label>
-              <a href="https://xumm.app/detect/xapp:xumm.kyc?origin=dd1e8d7e-8017-4375-9afa-9a67678f0974">Start KYC</a>
+              <label>KYC (and other benefits) are available for XUMM Pro users.</label>
+              <label>Once you are KYC'd you can visit the 'Token Creator' xApp again and create your token. Your KYC is available right away. To get XUMM Pro, click here:</label>
+              <label>&nbsp;</label>
+              <a href="https://xumm.app/detect/xapp:xumm.kyc?origin=dd1e8d7e-8017-4375-9afa-9a67678f0974">Get XUMM Pro</a>
+              <label>&nbsp;</label>
+              <label>&nbsp;</label>
+              <label>Alternatively you can get KYC'd through GlobaliD. Synchronizing the GlobaliD KYC with XUMM takes around 4 days. So if you want to use GlobaliD, you have to wait 4 days before you can create your token.</label>
+              <label>4 days after you successfully went through KYC with GlobaliD, you can visit the 'Token Creator' xApp again to create your token.</label>
+              <label>&nbsp;</label>
+              <label class="break-words" style="text-decoration: underline;" (click)="openGlobalIdKYC()">Click here to get GlobaliD</label>
             </mat-card>
 
             <mat-card *ngIf="accountHasKYC && issuer_account_info && issuer_account_info.error && issuer_account_info.error == 'actNotFound' && !loadingData" class="mat-card-red">
@@ -452,13 +462,22 @@
     <mat-step completed="false" editable="false">
       <mat-card fxLayout="column" fxLayoutGap="0.5em">
         <ng-template matStepLabel>Finished!</ng-template>
-        <mat-card class="mat-card-green"><label>Hoooorrrraayy! You have successfully created your token in the XRP Ledger {{isTestMode ? 'TESTNET' : 'MAINNET'}}! Now spread the word, send it around and put it to good use!</label></mat-card>
-        <label>You can send your Token through the XRP Ledger to accounts which have a TrustLine with your issuer account: <b>{{getIssuer()}}</b></label>
+        <mat-card class="mat-card-green"><label>Hoooorrrraayy! You have successfully created your token in the XRP Ledger {{isTestMode ? 'TESTNET' : 'MAINNET'}}! Now you can spread the word, send it around and put it to good use!</label></mat-card>
+        <label>You can send your Token through the XRP Ledger to accounts which have a TrustLine with your issuer account:</label>
+        <label class="break-words"><b>{{getIssuer()}}</b></label>
         <mat-card class="mat-card-orange" fxLayout="column" fxLayoutGap="0.3em;">
-          <label>You can share the following link with people interested in your Token. The link will setup the trustline they need to have to receive your Token:</label>
+          <label>You can now start integrating your project with the XUMM app. The XUMM API documentation can be found here:</label>
           <label>&nbsp;</label>
-          <div fxLayout="row" fxLayoutGap="0.3em;">
-            <label class="break-words" (click)="copyLink()">{{getTrustlineLink()}}</label>
+          <label style="text-decoration: underline;" class="break-words" (click)="openXummDocs()">XUMM API Docs</label>
+          <label>&nbsp;</label>
+          <label>An example implementation here:</label>
+          <label>&nbsp;</label>
+          <label style="text-decoration: underline;" class="break-words" (click)="openXummExample()">XUMM Example</label>
+          <label>&nbsp;</label>
+          <label>Alternatively you can share the following link with people interested in your Token. The link will setup the trustline they need to have to receive your Token:</label>
+          <label>&nbsp;</label>
+          <div fxLayout="row" fxLayoutGap="0.3em;" fxLayoutAlign="start center">
+            <label style="text-decoration: underline;" class="break-words" (click)="copyLink()">{{getTrustlineLink()}}</label>
             <button mat-icon-button aria-label="Copy Link" (click)="copyLink()">
               <mat-icon style="font-size: 16px; width: fit-content; height: fit-content;">content_copy</mat-icon>
             </button>
@@ -468,7 +487,9 @@
           <label>&nbsp;</label>
           <div fxLayout="column">
             <label>If you want to blackhole your Issuer account, please visit </label>
-            <label (click)="openBlackholeLink()">https://xrpl.services/tokens</label>
+            <label>&nbsp;</label>
+            <label style="text-decoration: underline;" class="break-words" (click)="openBlackholeLink()">https://xrpl.services/tokens</label>
+            <label>&nbsp;</label>
             <label> and find the section "Blackhole Account".</label>
           </div>
           
