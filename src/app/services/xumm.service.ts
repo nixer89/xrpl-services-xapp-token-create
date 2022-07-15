@@ -113,7 +113,7 @@ export class XummService {
 
     async getKycStatus(account: string): Promise<any> {
         try {
-            return this.app.get("https://xumm.app/api/v1/platform/kyc-status/" + account);
+            return this.app.get("https://xumm.app/api/v1/platform/kyc-status/" + account+"?include_globalid=true");
         } catch(err) {
             console.log(JSON.stringify(err))
             return null;
