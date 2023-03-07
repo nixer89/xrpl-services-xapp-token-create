@@ -118,12 +118,6 @@
               <label>Once you are KYC'd you can visit the 'Token Creator' xApp again and create your token. Your KYC is available right away. To get XUMM Pro, click here:</label>
               <label>&nbsp;</label>
               <a href="https://xumm.app/detect/xapp:xumm.pro-beta?application_id=dd1e8d7e-8017-4375-9afa-9a67678f0974">Get XUMM Pro</a>
-              <label>&nbsp;</label>
-              <label>&nbsp;</label>
-              <label>Alternatively you can get KYC'd through GlobaliD. Synchronizing the GlobaliD KYC with XUMM takes around 4 days. So if you want to use GlobaliD, you have to wait 4 days before you can create your token.</label>
-              <label>4 days after you successfully went through KYC with GlobaliD, you can visit the 'Token Creator' xApp again to create your token.</label>
-              <label>&nbsp;</label>
-              <label class="break-words" style="text-decoration: underline;" (click)="openGlobalIdKYC()">Click here to get GlobaliD</label>
             </mat-card>
 
             <mat-card *ngIf="accountHasKYC && issuer_account_info && issuer_account_info.error && issuer_account_info.error == 'actNotFound' && !loadingData" class="mat-card-red">
@@ -132,7 +126,7 @@
 
             <mat-card *ngIf="accountHasKYC && issuer_account_info && hasOutgoingTrustlines && !loadingData" class="mat-card-red" fxLayout="column">
               <label>This account has trustlines to other tokens/accounts.</label>
-              <label>For the safety of your funds we do not allow you to create a token with an account which has outgoing trustlines. It is strongly recommended to use a "new" account to create your token.</label>
+              <label>For the safety of your funds we do not allow you to create a token with an account that has outgoing trustlines. It is strongly recommended to use a "new/fresh" account to create your token.</label>
             </mat-card>
             
           </div>  

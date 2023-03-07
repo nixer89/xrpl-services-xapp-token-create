@@ -130,9 +130,9 @@ export class CreateToken implements OnInit, OnDestroy {
     this.loadingData = true;
 
     /**
-    await this.loadAccountDataIssuer("r9N4v3cWxfh4x6yUNjxNy3DbWUgbzMBLdk");
-    this.issuerAccount = "r9N4v3cWxfh4x6yUNjxNy3DbWUgbzMBLdk";
-    this.signInAccount = "r9N4v3cWxfh4x6yUNjxNy3DbWUgbzMBLdk";
+    await this.loadAccountDataIssuer("rnvNg8HMZbgzSXvsELaVdjvmjF5puHzPyB");
+    this.issuerAccount = "rnvNg8HMZbgzSXvsELaVdjvmjF5puHzPyB";
+    this.signInAccount = "rnvNg8HMZbgzSXvsELaVdjvmjF5puHzPyB";
     this.loadingData = false;
      */
 
@@ -1145,16 +1145,6 @@ export class CreateToken implements OnInit, OnDestroy {
       window.ReactNativeWebView.postMessage(JSON.stringify({
         command: "openBrowser",
         url: "https://xrpl.services/tokens"
-      }));
-    }
-  }
-
-  openGlobalIdKYC() {
-    if (typeof window.ReactNativeWebView !== 'undefined') {
-      //this.infoLabel = "opening sign request";
-      window.ReactNativeWebView.postMessage(JSON.stringify({
-        command: "openBrowser",
-        url: "https://global.id/"
       }));
     }
   }
