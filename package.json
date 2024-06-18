@@ -1,6 +1,6 @@
 {
   "name": "xrpl-services-xapp-token-create",
-  "version": "3.1.3",
+  "version": "3.1.4",
   "scripts": {
     "ng": "ng",
     "start": "ng serve --port 4202 --open",
@@ -34,7 +34,7 @@
     "rxjs": "^6.6.7",
     "tslib": "^2.3.0",
     "xrpl-tagged-address-codec": "^0.2.1",
-    "xumm-sdk": "^0.4.6",
+    "xumm-sdk": "^1.11.1",
     "zone.js": "~0.11.4"
   },
   "devDependencies": {

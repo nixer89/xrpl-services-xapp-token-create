@@ -102,8 +102,6 @@ export class CreateToken implements OnInit, OnDestroy {
 
   loadingData:boolean = false;
 
-  websocket: WebSocketSubject<any>;
-
   infoLabel:string = null;
   infoLabel2:string = null;
   infoLabel3:string = null;
@@ -165,8 +163,6 @@ export class CreateToken implements OnInit, OnDestroy {
         this.infoLabel = JSON.stringify(this.issuer_account_info);
       }
 
-
-
       //this.testMode = true;
       //await this.loadAccountData("rELeasERs3m4inA1UinRLTpXemqyStqzwh");
       //await this.loadAccountData("r9N4v3cWxfh4x6yUNjxNy3DbWUgbzMBLdk");
@@ -188,15 +184,6 @@ export class CreateToken implements OnInit, OnDestroy {
       this.overlayContainer.getContainerElement().classList.add(this.themeClass);
     });
     //this.infoLabel = JSON.stringify(this.device.getDeviceInfo());
-
-    //add event listeners
-    if (typeof window.addEventListener === 'function') {
-      window.addEventListener("message", event => this.handleOverlayEvent(event));
-    }
-    
-    if (typeof document.addEventListener === 'function') {
-      document.addEventListener("message", event => this.handleOverlayEvent(event));
-    }
 
     await this.loadFeeReserves();
 
@@ -230,21 +217,6 @@ export class CreateToken implements OnInit, OnDestroy {
     //console.log("resolved ownerReserve: " + this.ownerReserve);
   }
 
-  async handleOverlayEvent(event:any) {
-    try {
-      if(event && event.data) {
-        let eventData = JSON.parse(event.data);
-
-        if(eventData && eventData.method == "payloadResolved" && eventData.reason == "DECLINED") {
-            //user closed without signing
-            this.loadingData = false;
-        }
-      }
-    } catch(err) {
-      //ignore errors
-    }
-  }
-
   getIssuer(): string {
     return this.issuerAccount;
   }
@@ -255,8 +227,11 @@ export class CreateToken implements OnInit, OnDestroy {
     let xummResponse:XummTypes.XummPostPayloadResponse;
     try {
         payloadRequest.payload.options = {
-          expire: 2,
-          forceAccount: isValidXRPAddress(payloadRequest.payload.txjson.Account+"")
+          expire: 2
+        }
+
+        if(payloadRequest.payload.txjson.Account && isValidXRPAddress(payloadRequest.payload.txjson.Account+"")) {
+          payloadRequest.payload.options.signers = [payloadRequest.payload.txjson.Account+""]
         }
 
         //console.log("sending xumm payload: " + JSON.stringify(xummPayload));
@@ -283,30 +258,43 @@ export class CreateToken implements OnInit, OnDestroy {
 
     //this.infoLabel = "Showed sign request to user";
 
-    //remove old websocket
     try {
-      if(this.websocket && !this.websocket.closed) {
-        this.websocket.unsubscribe();
-        this.websocket.complete();
-      }
 
-      return new Promise( (resolve, reject) => {
+      return new Promise( async (resolve, reject) => {
 
-        this.websocket = webSocket(xummResponse.refs.websocket_status);
-        this.websocket.asObservable().subscribe(async message => {
-            //console.log("message received: " + JSON.stringify(message));
-            //this.infoLabel = "message received: " + JSON.stringify(message);
+        //use event listeners over websockets
+        if(typeof window.addEventListener === 'function') {
+          window.addEventListener("message", event => {
+            try {
+              if(event && event.data) {
+                let eventData = JSON.parse(event.data);
+        
+                console.log("WINDOW: " + eventData);
 
-            if((message.payload_uuidv4 && message.payload_uuidv4 === xummResponse.uuid) || message.expired || message.expires_in_seconds <= 0) {
+                if(eventData && eventData.method == "payloadResolved") {
 
-              if(this.websocket) {
-                this.websocket.unsubscribe();
-                this.websocket.complete();
+                  window.removeAllListeners("message");
+
+                  if(eventData.reason == "SIGNED") {
+                    //create own response
+                    let message = {
+                      signed: true,
+                      payload_uuidv4: eventData.uuid
+                    }
+                    
+                    resolve(message);
+
+                  } else if(eventData.reason == "DECLINED") {
+                    //user closed without signing
+                    resolve(null)
+                  }
+                }
               }
-              
-              setTimeout( () => resolve(message), 500);
+            } catch(err) {
+              //ignore errors
             }
-        });
+          });
+        }
       });
     } catch(err) {
       this.loadingData = false;
