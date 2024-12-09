@@ -85,8 +85,8 @@ export class CreateToken implements OnInit, OnDestroy {
   recipientTrustlineSet:boolean = false;
   weHaveIssued:boolean = false;
 
-  accountReserve:number = 10000000;
-  ownerReserve:number = 2000000;
+  accountReserve:number = 1000000;
+  ownerReserve:number = 200000;
 
   @Input()
   ottChanged: Observable<any>;
@@ -210,8 +210,14 @@ export class CreateToken implements OnInit, OnDestroy {
     }
 
     let feeSetting:any = await this.xrplWebSocket.getWebsocketMessage("fee-settings", fee_request, this.isTestMode);
-    this.accountReserve = feeSetting?.result?.node["ReserveBase"];
-    this.ownerReserve = feeSetting?.result?.node["ReserveIncrement"];
+    
+    if('ReserveBase' in feeSetting?.result?.node) {
+      this.accountReserve = feeSetting?.result?.node.ReserveBase;
+      this.ownerReserve = feeSetting?.result?.node.ReserveIncrement;
+    } else {
+      this.accountReserve = Number(feeSetting?.result?.node.ReserveBaseDrops);
+      this.ownerReserve = Number(feeSetting?.result?.node.ReserveIncrementDrops);
+    }
 
     //console.log("resolved accountReserve: " + this.accountReserve);
     //console.log("resolved ownerReserve: " + this.ownerReserve);
